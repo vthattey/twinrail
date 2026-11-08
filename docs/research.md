@@ -51,3 +51,24 @@ any of this; scheme documents change.
 - **Consequence:** the open edition is usable (Apache-2.0 is compatible with ADR 0002), but CBPR+ and SEPA rule
   packs (v0.3) cannot lean on a commercial validator. Not yet checked: that the RTR versions (`pacs.008.001.08`,
   `pacs.002.001.10`, `pacs.028.001.03`, `head.001.001.02`) exist in the open model, and the JAXB/Jakarta runtime it needs.
+
+## 5. G3 spike, part 1: Prowide open edition (static check, 2026-11-08)
+
+Inspected `com.prowidesoftware:pw-iso20022:SRU2025-10.4.1` from Maven Central (jar and POM downloaded and read; no
+JDK was available, so nothing was compiled or run).
+
+- POM licence: Apache License Version 2.0. Depends on `pw-swift-core` SRU2025-10.3.20 (compile) and
+  `jaxb-impl` 4.0.6 (runtime).
+- The jar contains model classes for every message the plan needs: `MxPacs00800108`, `MxPacs00200110`,
+  `MxPacs02800103`, `MxAdmi00200101`, `MxAdmi00400101`, `MxAdmi01100101`, `MxCamt05300108`, `MxCamt05400108`, and
+  `BusinessAppHdrV02` (the `head.001.001.02` header). Also present: `MxCamt05200108`, `MxPacs00400110`,
+  `MxCamt05600108`, `MxCamt02900109` for later releases.
+- **The jar holds no `.xsd` files.** Schema validation against the published RTR/ISO schemas cannot come from this
+  jar alone; the codec task must decide how to validate (supply schemas ourselves, subject to the spec-reuse risk in
+  section 3, or validate through the model and our own rules).
+- The jar is about 57 MB with 32k classes. Image size needs a trimmed/shaded build; measure.
+- The artefact `maven-metadata.xml` lists `SRU2025-10.4.0` as latest/release, yet `10.4.1` is downloadable; pin an
+  exact version.
+
+Still open for G3 (needs a JDK 21): unmarshal and re-marshal a sample `pacs.008.001.08`, measure cold start and
+image size.

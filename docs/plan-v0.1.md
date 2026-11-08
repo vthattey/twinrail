@@ -9,7 +9,8 @@ Scope is the MVP in `docs/brief.md` as amended by ADR 0009. Decisions: `docs/dec
       the demo storyboard. Output: notes in `docs/validation.md`, no names or employers.
 - [ ] **G2. Payments Canada enquiry** (ISO20022@payments.ca): may a public open-source rule pack reference the RTR
       specs? Blocks M5 (RTR pack) only.
-- [ ] **G3. Spike: Prowide open edition.** Confirm `pacs.008.001.08`, `pacs.002.001.10`, `pacs.028.001.03`,
+- [~] **G3. Spike: Prowide open edition.** (Part 1 done: classes present, see `docs/research.md` section 5. Open:
+      round-trip sample, startup and image size, needs JDK 21.) Confirm `pacs.008.001.08`, `pacs.002.001.10`, `pacs.028.001.03`,
       `head.001.001.02`, `camt.053`/`.054` exist and (un)marshal; measure image size and startup. Output: update
       ADR 0001 and `docs/research.md`.
 
