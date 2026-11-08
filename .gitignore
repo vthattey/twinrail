@@ -1,0 +1,21 @@
+# Build output
+target/
+build/
+out/
+.gradle/
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs and local state
+*.log
+.twinrail/
