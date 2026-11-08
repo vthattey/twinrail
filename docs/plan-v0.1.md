@@ -17,10 +17,10 @@ Scope is the MVP in `docs/brief.md` as amended by ADR 0009. Decisions: `docs/dec
 ## Milestones
 
 ### M0. Foundation
-- [ ] Gradle (Kotlin DSL) multi-module skeleton per ADR 0008; Java 21 toolchain.
-- [ ] Apache-2.0 LICENSE, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT, CHANGELOG, issue templates.
-- [ ] CI on Linux, Windows, macOS: build, test, format check.
-- [ ] README with the "not certification" statement, trademark note and credits (mock-bank, moov).
+- [x] Gradle (Kotlin DSL) multi-module skeleton per ADR 0008; Java 21 toolchain.
+- [x] Apache-2.0 LICENSE, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT, CHANGELOG, issue templates.
+- [~] CI on Linux, Windows, macOS: build, test, format check. (Written, not yet run on GitHub: no remote yet.)
+- [x] README with the "not certification" statement, trademark note and credits (mock-bank, moov).
 
 ### M1. Core model: codec, clock, recorder
 - [ ] Message codec wrapper (parse, validate against schema, generate) with golden-file tests.
