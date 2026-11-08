@@ -70,5 +70,26 @@ JDK was available, so nothing was compiled or run).
 - The artefact `maven-metadata.xml` lists `SRU2025-10.4.0` as latest/release, yet `10.4.1` is downloadable; pin an
   exact version.
 
-Still open for G3 (needs a JDK 21): unmarshal and re-marshal a sample `pacs.008.001.08`, measure cold start and
-image size.
+## 6. G3 spike, part 2: round-trip and startup (Temurin 21.0.13, Windows 10, 2026-11-08)
+
+Throwaway spike (not committed): parse a synthetic `pacs.008.001.08` with `MxPacs00800108.parse`, read fields, then
+marshal with `message()`, re-parse and marshal again.
+
+- **Round-trip works.** Fields read correctly (message id, amount and currency), and parse → marshal → parse →
+  marshal is stable (the second output equals the first).
+- **Output is not byte-identical to the input.** Prowide rewrites the namespace prefix (`<pacs:Document ...>`
+  instead of a default namespace) and normalises timestamps (`2026-11-09T10:00:00Z` became
+  `2026-11-09T10:00:00+00:00`). Golden-file tests must compare the generated output, not the input text, and the
+  codec should pin its own serialisation settings.
+- **Runtime classpath is larger than the POM says.** The jar failed at run time until I added
+  `commons-lang3` 3.20.0, `commons-text` 1.15.0 and `gson` 2.14.0 (runtime deps of `pw-swift-core`) and
+  `istack-commons-runtime` 4.1.2 and `jakarta.activation-api` 2.1.3 / `angus-activation` 2.0.2 (needed by
+  JAXB). Total on disk: about 63 MB of jars. A real build tool will resolve these, so this only matters for
+  dependency counting and for image size.
+- **Cold start is dominated by JAXB context creation.** Wall time for JVM start + first parse + marshal:
+  about 1.4 s (3 runs, 1.38–1.39 s); parse alone about 0.85 s, marshal about 0.13 s. An empty `main` takes about
+  0.18 s. With an AppCDS archive built from the same run (a 7 MB `.jsa`), wall time dropped to about 0.95 s
+  (0.92–0.99 s, 3 runs). The archive only worked when the application was packaged as a jar.
+- **Not measured: container image size.** There is no Docker on this machine. Estimate only: about 63 MB of jars plus a
+  JRE; measure once Docker is available (M4).
+- Single machine, single message type, tiny payload, no warm-up. Treat these as ballpark figures, not a benchmark.
