@@ -11,3 +11,5 @@ All notable changes to this project are documented here. The format is based on
 - Multi-module Gradle build (`core`, `rule-packs`, `ui`, `server`, `testcontainers`) on Java 21.
 - Apache-2.0 licence, contributing guide, security policy and code of conduct.
 - CI on Linux, Windows and macOS.
+- `core`: virtual clock, seeded id generator, ISO 20022 message codec (Prowide open edition) with fixed output
+  settings, in-memory recorder and versioned session files, with a determinism test.
