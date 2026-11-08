@@ -47,8 +47,9 @@ Data:         rule packs (one per scheme, versioned) Â· scenario files (match â†
 ## MVP (v0.1)
 
 1. **RTR credit transfer** from Payments Canada's published ISO 20022 specs: `pacs.008` in, `pacs.002`
-   accept/reject out, configurable time-out, `pacs.004` return, `camt.056` recall answered by `camt.029`.
-   *Verify the exact RTR message set against the spec first.*
+   accept/reject out (plus settlement commit advice), `pacs.028` status request, `admi.002` reject, heartbeat,
+   configurable time-out. Returns and recalls are not in the published RTR set, so they are out of v0.1 for RTR
+   (see ADR 0009; findings in `docs/research.md`).
 2. **NACHA ACH** with returns and NOCs.
 3. **Ledger + statements** (`camt.053`, `camt.054`).
 4. **Virtual clock + scenario files.**
