@@ -1,0 +1,56 @@
+# Illustrative rule pack. It demonstrates the format and is used by tests and demos.
+# It is NOT the rule set of any payment scheme. Do not use it to judge scheme compliance.
+format: 1
+pack:
+  id: example
+  name: Example pack (illustrative, not a scheme)
+  version: "0.1"
+rules:
+  - id: EX-001
+    message: pacs.008.001.08
+    source: { spec: "Twinrail example pack", version: "0.1", section: "single transaction" }
+    assert: { path: /Document/FIToFICstmrCdtTrf/GrpHdr/NbOfTxs, equals: "1" }
+    reason: FF01
+    text: A credit transfer message must carry exactly one transaction.
+
+  - id: EX-002
+    message: pacs.008.001.08
+    source: { spec: "Twinrail example pack", version: "0.1", section: "amount" }
+    assert: { path: /Document/FIToFICstmrCdtTrf/CdtTrfTxInf/IntrBkSttlmAmt, min: "0.01" }
+    reason: AM01
+    text: The settlement amount must be greater than zero.
+
+  - id: EX-003
+    message: pacs.008.001.08
+    source: { spec: "Twinrail example pack", version: "0.1", section: "currency" }
+    assert:
+      path: /Document/FIToFICstmrCdtTrf/CdtTrfTxInf/IntrBkSttlmAmt/@Ccy
+      matches: "[A-Z]{3}"
+    reason: AM03
+    text: The settlement currency must be a three-letter code.
+
+  - id: EX-004
+    message: pacs.008.001.08
+    source: { spec: "Twinrail example pack", version: "0.1", section: "identifiers" }
+    assert: { path: /Document/FIToFICstmrCdtTrf/CdtTrfTxInf/PmtId/EndToEndId, maxLength: 35 }
+    reason: FF01
+    text: The end-to-end id must be at most 35 characters.
+
+  - id: EX-005
+    message: pacs.008.001.08
+    source: { spec: "Twinrail example pack", version: "0.1", section: "agents" }
+    when:
+      - { path: /Document/FIToFICstmrCdtTrf/CdtTrfTxInf/CdtrAgt/FinInstnId/ClrSysMmbId/MmbId, present: true }
+    assert:
+      path: /Document/FIToFICstmrCdtTrf/CdtTrfTxInf/CdtrAgt/FinInstnId/ClrSysMmbId/MmbId
+      matches: "[0-9]{9}"
+    reason: RC01
+    text: A creditor agent member id must be nine digits.
+
+  - id: EX-006
+    message: pacs.008.001.08
+    source: { spec: "Twinrail example pack", version: "0.1", section: "tracking" }
+    assert: { path: /Document/FIToFICstmrCdtTrf/CdtTrfTxInf/PmtId/UETR, present: true }
+    reason: FF01
+    text: A transaction should carry a UETR so it can be traced end to end.
+    severity: warning

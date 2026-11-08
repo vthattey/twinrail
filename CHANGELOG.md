@@ -13,3 +13,7 @@ All notable changes to this project are documented here. The format is based on
 - CI on Linux, Windows and macOS.
 - `core`: virtual clock, seeded id generator, ISO 20022 message codec (Prowide open edition) with fixed output
   settings, in-memory recorder and versioned session files, with a determinism test.
+- `core`: rule engine and rule-pack loader (YAML, published JSON Schema); rejections name the rule, reason code
+  and source specification. Scenario files with first-match-wins matching and reject, delay and drop actions.
+  Restricted XPath-like element paths. An illustrative example pack. Guides: `docs/rule-packs.md`,
+  `docs/scenarios.md`.

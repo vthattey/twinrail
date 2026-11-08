@@ -30,10 +30,10 @@ Scope is the MVP in `docs/brief.md` as amended by ADR 0009. Decisions: `docs/dec
 - [x] Determinism test: same seed, clock and inputs produce byte-identical output.
 
 ### M2. Rule engine and scenarios
-- [ ] Rule-pack JSON Schema and loader; element-path evaluator (ADR 0003).
-- [ ] Rejections carry rule id, reason code and source spec/version.
-- [ ] Scenario schema and matcher shared with rules (ADR 0004); first-match-wins.
-- [ ] Rule-pack linter (CI check that every rule has `source`).
+- [x] Rule-pack JSON Schema and loader; element-path evaluator (ADR 0003).
+- [x] Rejections carry rule id, reason code and source spec/version.
+- [x] Scenario schema and matcher shared with rules (ADR 0004); first-match-wins.
+- [x] Rule-pack linter: the loader refuses a rule without `source`; a test loads and schema-checks every shipped pack.
 
 ### M3. Payment lifecycle and ledger
 - [ ] State machine: accepted → settled → rejected / timed out (returns/recalls on NACHA only).
