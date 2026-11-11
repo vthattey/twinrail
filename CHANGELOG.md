@@ -34,3 +34,7 @@ All notable changes to this project are documented here. The format is based on
   the sources read: `docs/research.md` section 7.
 - Scenario actions `return` (ACH return codes) and `noc` (notification of change), `nacha.entry` as a scenario
   message type, a return and change code table with a source on every code, and ADR 0011.
+- `core`: ACH engine: entries settle against the ledger, a debit the account cannot cover is returned R01, and
+  `return` / `noc` scenarios apply on the virtual clock, reporting the return time frame from the code table and
+  the type 99 / 98 addenda record. `server`: `POST /ach/files`, `/_twinrail/ach/entries`, `achTransitions` on the
+  clock endpoints, OpenAPI and contract tests for them. `Ledger.book` for movements that need no reservation.

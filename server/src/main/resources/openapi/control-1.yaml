@@ -22,6 +22,34 @@ paths:
         "200": { description: Accepted or settled., content: { application/json: { schema: { $ref: "#/components/schemas/Payment" } } } }
         "422": { description: Rejected; the payment carries the rule and reason code., content: { application/json: { schema: { $ref: "#/components/schemas/Payment" } } } }
         "400": { $ref: "#/components/responses/BadRequest" }
+  /ach/files:
+    post:
+      summary: Send an ACH (NACHA) file
+      description: |
+        Entries are settled, returned or changed according to the scenarios (docs/nacha.md). A file whose control
+        totals, padding or header values are wrong is refused whole with 422 and a list of problems; a file that
+        is not structurally an ACH file gets 400.
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema: { type: string, description: "94-character records, LF or CRLF line endings." }
+      responses:
+        "200": { description: Received; the entries and their state., content: { application/json: { schema: { $ref: "#/components/schemas/AchFileResult" } } } }
+        "422": { description: Refused whole; the problems name what to fix., content: { application/json: { schema: { $ref: "#/components/schemas/AchFileRejection" } } } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /_twinrail/ach/entries:
+    get:
+      summary: All ACH entries in the order received
+      responses:
+        "200": { description: Entries., content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/AchEntry" } } } } }
+  /_twinrail/ach/entries/{id}:
+    get:
+      summary: One ACH entry
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: The entry., content: { application/json: { schema: { $ref: "#/components/schemas/AchEntry" } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
   /_twinrail/openapi.yaml:
     get:
       summary: This file
@@ -265,6 +293,84 @@ components:
       properties:
         now: { type: string, format: date-time }
         transitions: { type: array, items: { $ref: "#/components/schemas/Transition" } }
+        achTransitions: { type: array, items: { $ref: "#/components/schemas/AchTransition" } }
+    AchTransition:
+      type: object
+      required: [entryId, to, kind, at]
+      additionalProperties: false
+      properties:
+        entryId: { type: string }
+        from: { $ref: "#/components/schemas/AchState" }
+        to: { $ref: "#/components/schemas/AchState" }
+        kind: { type: string, enum: [accepted, settled, returned, change] }
+        at: { type: string, format: date-time }
+    AchState:
+      type: string
+      enum: [ACCEPTED, SETTLED, RETURNED]
+    AchFileResult:
+      type: object
+      required: [entries]
+      additionalProperties: false
+      properties:
+        entries: { type: array, items: { $ref: "#/components/schemas/AchEntry" } }
+    AchFileRejection:
+      type: object
+      required: [problems]
+      additionalProperties: false
+      properties:
+        problems: { type: array, minItems: 1, items: { $ref: "#/components/schemas/AchProblem" } }
+    AchProblem:
+      type: object
+      required: [id, line, text]
+      additionalProperties: false
+      properties:
+        id: { type: string, example: nacha.batch.total-credit }
+        line: { type: integer, minimum: 0, description: "The line it concerns, 0 for the file as a whole." }
+        text: { type: string }
+    AchReturn:
+      type: object
+      required: [code, title, timeframe, source, at, addendaRecord]
+      additionalProperties: false
+      properties:
+        code: { type: string, pattern: "^R[0-9]{2}$" }
+        title: { type: string }
+        timeframe: { type: string, description: "The return time frame as the code table's source states it." }
+        source: { type: string }
+        text: { type: string }
+        at: { type: string, format: date-time }
+        addendaRecord: { type: string, minLength: 94, maxLength: 94, description: "The type 99 addenda record. Its trace number is the original entry's: Twinrail does not generate the return entry yet." }
+    AchChange:
+      type: object
+      required: [code, title, source, corrected, at, addendaRecord]
+      additionalProperties: false
+      properties:
+        code: { type: string, pattern: "^C[0-9]{2}$" }
+        title: { type: string }
+        source: { type: string }
+        corrected: { type: object, additionalProperties: { type: string } }
+        at: { type: string, format: date-time }
+        addendaRecord: { type: string, minLength: 94, maxLength: 94, description: The type 98 addenda record. }
+    AchEntry:
+      type: object
+      required: [id, state, traceNumber, batchNumber, transactionCode, routingNumber, accountNumber, amount, receivedAt, settleAt]
+      additionalProperties: false
+      properties:
+        id: { type: string, example: ACH-000001 }
+        state: { $ref: "#/components/schemas/AchState" }
+        traceNumber: { type: string }
+        batchNumber: { type: integer }
+        companyName: { type: string }
+        secCode: { type: string }
+        transactionCode: { type: string }
+        routingNumber: { type: string }
+        accountNumber: { type: string }
+        amount: { type: string, description: Decimal dollars. }
+        individualName: { type: string }
+        receivedAt: { type: string, format: date-time }
+        settleAt: { type: string, format: date-time }
+        closedAt: { type: string, format: date-time }
+        return: { $ref: "#/components/schemas/AchReturn" }
+        change: { $ref: "#/components/schemas/AchChange" }
     Transition:
       type: object
       required: [paymentId, to, at]

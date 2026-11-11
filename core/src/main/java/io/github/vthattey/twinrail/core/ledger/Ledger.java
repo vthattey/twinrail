@@ -115,6 +115,24 @@ public final class Ledger {
       String creditor,
       BigDecimal amount,
       String currency) {
+    Account reserved = require(debtor);
+    reserved.held = reserved.held.subtract(amount);
+    book(at, paymentId, endToEndId, debtor, creditor, amount, currency);
+  }
+
+  /**
+   * Books a movement between two accounts without using a reservation and without the overdraft
+   * rule, for a return, which must be booked whatever the balance. Creates the creditor account if
+   * it does not exist.
+   */
+  public synchronized void book(
+      Instant at,
+      String paymentId,
+      String endToEndId,
+      String debtor,
+      String creditor,
+      BigDecimal amount,
+      String currency) {
     Account from = require(debtor);
     Account to =
         accounts.computeIfAbsent(creditor, id -> new Account(id, currency, BigDecimal.ZERO, true));
@@ -128,7 +146,6 @@ public final class Ledger {
               + currency
               + ". Open the account in the payment currency.");
     }
-    from.held = from.held.subtract(amount);
     from.balance = from.balance.subtract(amount);
     to.balance = to.balance.add(amount);
     entries.add(

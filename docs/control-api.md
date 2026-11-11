@@ -18,6 +18,8 @@ file; default is the bundled illustrative example pack, which is not a scheme).
 
 ## Messages
 
+`POST /ach/files` with an ACH file body sends an ACH file (see [nacha.md](nacha.md)).
+
 `POST /messages` with a `pacs.008` XML body runs the payment ([lifecycle](lifecycle.md)) and returns the payment.
 Status 200 if accepted or settled, 422 if rejected; a rejection carries `rule`, `reason`, `text` and `source`.
 This is a JSON view for now; scheme-specific replies such as `pacs.002` arrive with the rule packs (M5).
@@ -38,6 +40,7 @@ This is a JSON view for now; scheme-specific replies such as `pacs.002` arrive w
 | `PUT /scenarios` | scenario YAML | Replaces the scenarios for payments received from now on. |
 | `GET /scenarios` | | Ids of the loaded scenarios. |
 | `GET /payments`, `GET /payments/{id}` | | Payment state, times and any rejection. |
+| `GET /ach/entries`, `GET /ach/entries/{id}` | | ACH entries with state, any return or change. See [nacha.md](nacha.md). |
 | `POST /webhooks` | `{"url","secret"}` | Registers a webhook target. 201. See below. |
 | `GET /webhooks`, `DELETE /webhooks/{id}` | | List targets (never the secret) or remove one. |
 | `GET /webhooks/deliveries` | | Every delivery: state, attempts, last status, next attempt time. |

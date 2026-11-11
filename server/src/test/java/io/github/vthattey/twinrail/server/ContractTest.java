@@ -245,6 +245,37 @@ class ContractTest {
     call("POST", "/messages", "/messages", "application/xml", sample("0.00")); // 422
     call("POST", "/messages", "/messages", "application/xml", "hello"); // 400
 
+    // ACH: a return after an hour for JANE DOE, a change notification for JOHN ROE.
+    call(
+        "PUT",
+        "/_twinrail/scenarios",
+        "/_twinrail/scenarios",
+        "application/yaml",
+        "format: 1\nscenarios:\n"
+            + "  - id: closed\n    match: { message: nacha.entry, where: [{ path: /Entry/IndividualName, equals: \"JANE DOE\" }] }\n"
+            + "    action: { type: return, code: R02, after: PT1H }\n"
+            + "  - id: moved\n    match: { message: nacha.entry, where: [{ path: /Entry/IndividualName, equals: \"JOHN ROE\" }] }\n"
+            + "    action: { type: noc, code: C01, account: \"55555555\" }\n");
+    var ach = call("POST", "/ach/files", "/ach/files", "text/plain", AchTestFiles.credits());
+    assertEquals(200, ach.statusCode());
+    String achId =
+        GSON.fromJson(ach.body(), com.google.gson.JsonObject.class)
+            .getAsJsonArray("entries")
+            .get(0)
+            .getAsJsonObject()
+            .get("id")
+            .getAsString();
+    call(
+        "POST",
+        "/ach/files",
+        "/ach/files",
+        "text/plain",
+        AchTestFiles.credits().replace("000000362550", "000000362551")); // 422
+    call("POST", "/ach/files", "/ach/files", "text/plain", "garbage"); // 400
+    call("GET", "/_twinrail/ach/entries", "/_twinrail/ach/entries", null, null);
+    call("GET", "/_twinrail/ach/entries/{id}", "/_twinrail/ach/entries/" + achId, null, null);
+    call("GET", "/_twinrail/ach/entries/{id}", "/_twinrail/ach/entries/none", null, null); // 404
+
     call("GET", "/_twinrail/payments", "/_twinrail/payments", null, null);
     call("GET", "/_twinrail/payments/{id}", "/_twinrail/payments/PMT-000001", null, null);
     call("GET", "/_twinrail/payments/{id}", "/_twinrail/payments/none", null, null);
