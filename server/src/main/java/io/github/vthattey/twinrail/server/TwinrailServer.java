@@ -92,6 +92,12 @@ public final class TwinrailServer {
     route(
         "GET", API + "/openapi.yaml", ctx -> ctx.contentType("application/yaml").result(openApi()));
     route("POST", "/messages", this::postMessage);
+    route("POST", "/ach/files", this::postAchFile);
+    route(
+        "GET",
+        API + "/ach/entries",
+        ctx -> json(ctx, emulator.achEntries().stream().map(AchJson::entry).toList()));
+    route("GET", API + "/ach/entries/{id}", this::getAchEntry);
 
     route("GET", API + "/health", ctx -> json(ctx, Map.of("status", "ok")));
     route(
@@ -173,6 +179,27 @@ public final class TwinrailServer {
     json(ctx, PaymentJson.of(p));
   }
 
+  private void postAchFile(Context ctx) {
+    var result = emulator.submitAch(ctx.body());
+    ctx.status(result.rejected() ? HttpStatus.UNPROCESSABLE_CONTENT : HttpStatus.OK);
+    json(ctx, AchJson.result(result));
+  }
+
+  private void getAchEntry(Context ctx) {
+    var entry = emulator.achEntry(ctx.pathParam("id"));
+    if (entry.isEmpty()) {
+      notFound(
+          ctx,
+          "ACH entry "
+              + ctx.pathParam("id")
+              + " not found. List them with GET "
+              + API
+              + "/ach/entries.");
+      return;
+    }
+    json(ctx, AchJson.entry(entry.get()));
+  }
+
   private void advanceClock(Context ctx) {
     String by = body(ctx).has("by") ? body(ctx).get("by").getAsString() : null;
     if (by == null) {
@@ -191,7 +218,8 @@ public final class TwinrailServer {
     clockResult(ctx, emulator.setClock(Instant.parse(to)));
   }
 
-  private void clockResult(Context ctx, List<Transition> done) {
+  private void clockResult(Context ctx, Emulator.Ticked ticked) {
+    List<Transition> done = ticked.payments();
     emulator.deliverDue(sender);
     Map<String, Object> out = new LinkedHashMap<>();
     out.put("now", emulator.now().toString());
@@ -207,6 +235,9 @@ public final class TwinrailServer {
               return m;
             })
             .toList());
+    if (!ticked.ach().isEmpty()) {
+      out.put("achTransitions", ticked.ach().stream().map(AchJson::transition).toList());
+    }
     json(ctx, out);
   }
 
@@ -289,6 +320,7 @@ public final class TwinrailServer {
 
   private void errors() {
     bad(CodecException.class);
+    bad(io.github.vthattey.twinrail.core.nacha.NachaException.class);
     bad(DefinitionException.class);
     bad(LedgerException.class);
     bad(IllegalArgumentException.class);

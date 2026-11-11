@@ -109,12 +109,29 @@ class SchemaAgreementTest {
             "format: 1\nscenarios: []\n",
             SC_HEAD + "  - id: a\n    action: {type: drop}\n",
             SC_HEAD + "  - id: a\n    action: {type: delay, duration: PT2M}\n",
-            SC_HEAD + "  - id: a\n    action: {type: reject, reason: AC04}\n");
+            SC_HEAD + "  - id: a\n    action: {type: reject, reason: AC04}\n",
+            SC_HEAD
+                + "  - id: a\n    match: {message: nacha.entry}\n    action: {type: return, code: R01}\n",
+            SC_HEAD
+                + "  - id: a\n    action: {type: return, code: R03, after: PT0S, text: closed}\n",
+            SC_HEAD + "  - id: a\n    action: {type: noc, code: C01, account: \"12345\"}\n",
+            SC_HEAD
+                + "  - id: a\n    action: {type: noc, code: C03, routing: \"021000021\", account: \"12345\"}\n",
+            SC_HEAD + "  - id: a\n    action: {type: noc, code: C09, individualId: \"ID1\"}\n");
     List<String> invalid =
         List.of(
             "scenarios: []\n",
             SC_HEAD + "  - id: a\n",
             SC_HEAD + "  - id: a\n    action: {type: bounce}\n",
+            SC_HEAD + "  - id: a\n    action: {type: return}\n",
+            SC_HEAD + "  - id: a\n    action: {type: return, code: X01}\n",
+            SC_HEAD + "  - id: a\n    action: {type: return, code: R01, after: soon}\n",
+            SC_HEAD + "  - id: a\n    action: {type: noc, code: C01}\n",
+            SC_HEAD
+                + "  - id: a\n    action: {type: noc, code: C01, account: \"1\", routing: \"2\"}\n",
+            SC_HEAD + "  - id: a\n    action: {type: noc, code: C13, account: \"1\"}\n",
+            SC_HEAD + "  - id: a\n    action: {type: noc, code: R01, account: \"1\"}\n",
+            SC_HEAD + "  - id: a\n    match: {message: nacha.file}\n    action: {type: drop}\n",
             SC_HEAD + "  - id: a\n    action: {type: reject}\n",
             SC_HEAD + "  - id: a\n    action: {type: reject, reason: nope}\n",
             SC_HEAD + "  - id: a\n    action: {type: delay}\n",

@@ -29,3 +29,12 @@ All notable changes to this project are documented here. The format is based on
 - Dockerfile (multi-stage, AppCDS class archive, unprivileged user), `scripts/image-check.sh`, a CI job that builds
   the image, smoke-tests it and records size and start-up time, and a workflow that publishes the image on version
   tags. `server`: runnable distribution (`installDist`), eager codec warm-up at start. Guide: `docs/docker.md`.
+- `core`: ACH (NACHA) file codec: table-driven record layouts, parser, deterministic writer, builder that derives
+  control records, and a control-total checker with stable problem ids. Guide: `docs/nacha.md`. Research notes on
+  the sources read: `docs/research.md` section 7.
+- Scenario actions `return` (ACH return codes) and `noc` (notification of change), `nacha.entry` as a scenario
+  message type, a return and change code table with a source on every code, and ADR 0011.
+- `core`: ACH engine: entries settle against the ledger, a debit the account cannot cover is returned R01, and
+  `return` / `noc` scenarios apply on the virtual clock, reporting the return time frame from the code table and
+  the type 99 / 98 addenda record. `server`: `POST /ach/files`, `/_twinrail/ach/entries`, `achTransitions` on the
+  clock endpoints, OpenAPI and contract tests for them. `Ledger.book` for movements that need no reservation.

@@ -9,6 +9,9 @@ import io.github.vthattey.twinrail.core.lifecycle.Payment;
 import io.github.vthattey.twinrail.core.lifecycle.PaymentEngine;
 import io.github.vthattey.twinrail.core.lifecycle.Transition;
 import io.github.vthattey.twinrail.core.matcher.XmlMessage;
+import io.github.vthattey.twinrail.core.nacha.AchEngine;
+import io.github.vthattey.twinrail.core.nacha.AchModel;
+import io.github.vthattey.twinrail.core.nacha.ReasonCodes;
 import io.github.vthattey.twinrail.core.recorder.Direction;
 import io.github.vthattey.twinrail.core.recorder.Recorder;
 import io.github.vthattey.twinrail.core.recorder.Session;
@@ -31,7 +34,31 @@ import java.util.Optional;
  */
 public final class Emulator {
   /** Start-up settings. Same config and same calls give the same results. */
-  public record Config(long seed, Instant start, Duration timeout, RulePack pack) {}
+  public record Config(
+      long seed, Instant start, Duration timeout, RulePack pack, ReasonCodes codes) {
+    /** With the bundled ACH return and change code table. */
+    public Config(long seed, Instant start, Duration timeout, RulePack pack) {
+      this(seed, start, timeout, pack, defaultCodes());
+    }
+  }
+
+  /** The ACH code table shipped in the rule-packs module. */
+  public static ReasonCodes defaultCodes() {
+    try (var in = Emulator.class.getResourceAsStream("/codes/nacha-codes-1.yaml")) {
+      if (in == null) {
+        throw new IllegalStateException(
+            "The ACH code table is missing from the build. Check that the rule-packs module is on the class path.");
+      }
+      return ReasonCodes.load(
+          new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8),
+          "nacha-codes-1.yaml");
+    } catch (java.io.IOException e) {
+      throw new IllegalStateException("Cannot read the ACH code table.", e);
+    }
+  }
+
+  /** What one clock move caused: payment and ACH state changes. */
+  public record Ticked(List<Transition> payments, List<AchModel.Transition> ach) {}
 
   private final Config config;
   private final MessageCodec codec = new MessageCodec();
@@ -41,6 +68,7 @@ public final class Emulator {
   private Recorder recorder;
   private ScenarioSet scenarios;
   private PaymentEngine engine;
+  private AchEngine ach;
   private Statements statements;
   private Webhooks webhooks;
   private int eventCursor;
@@ -64,6 +92,7 @@ public final class Emulator {
   private void rebuild() {
     engine = new PaymentEngine(config.timeout(), clock, ids, config.pack(), scenarios, ledger);
     statements = new Statements(ledger, clock, ids, codec);
+    ach = new AchEngine(AchEngine.Config.defaults(), clock, ids, scenarios, ledger, config.codes());
   }
 
   /** Receives a message: records it and, if it is a credit transfer, runs the payment. */
@@ -79,20 +108,37 @@ public final class Emulator {
     return clock.instant();
   }
 
-  public synchronized List<Transition> advance(Duration by) {
+  public synchronized Ticked advance(Duration by) {
     Instant after = clock.advance(by);
     recorder.recordClockAdvanced(after, by);
-    var done = engine.tick();
-    syncEvents();
-    return done;
+    return tickAll();
   }
 
-  public synchronized List<Transition> setClock(Instant to) {
+  public synchronized Ticked setClock(Instant to) {
     Instant after = clock.set(to);
     recorder.recordClockSet(after);
-    var done = engine.tick();
+    return tickAll();
+  }
+
+  private Ticked tickAll() {
+    var payments = engine.tick();
+    var achDone = ach.tick();
     syncEvents();
-    return done;
+    return new Ticked(payments, achDone);
+  }
+
+  /** Receives an ACH file. Structural errors throw; wrong control totals refuse the whole file. */
+  public synchronized AchModel.Result submitAch(String text) {
+    recorder.recordMessage(clock.instant(), Direction.INBOUND, "nacha.file", text);
+    return ach.submit(text);
+  }
+
+  public synchronized List<AchModel.Entry> achEntries() {
+    return ach.entries();
+  }
+
+  public synchronized Optional<AchModel.Entry> achEntry(String id) {
+    return ach.find(id);
   }
 
   public synchronized void openAccount(String id, String currency, BigDecimal balance) {
@@ -117,6 +163,7 @@ public final class Emulator {
 
   /** Replaces the scenario set for payments received from now on. */
   public synchronized void setScenarios(ScenarioSet set) {
+    ach.setScenarios(set); // validates ACH codes first; nothing changes if it throws
     scenarios = set;
     engine.setScenarios(set);
   }

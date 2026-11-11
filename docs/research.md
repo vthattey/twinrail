@@ -93,3 +93,42 @@ marshal with `message()`, re-parse and marshal again.
 - **Not measured: container image size.** There is no Docker on this machine. Estimate only: about 63 MB of jars plus a
   JRE; measure once Docker is available (M4).
 - Single machine, single message type, tiny payload, no warm-up. Treat these as ballpark figures, not a benchmark.
+
+## 7. NACHA ACH file layout, returns and notifications of change (read 2026-11-10)
+
+M6 needs the ACH file format, return reason codes (R-codes) and change codes (C-codes). **Nacha's own Operating
+Rules and Developer Guide were not read** (the rules are paid and the search found no free full copy), so
+everything below comes from secondary sources and must be checked against the Nacha documents before the pack
+claims anything about the scheme.
+
+Pages actually read:
+
+- **File layout:** eco.com, "NACHA file format explained: records, fields and a worked example"
+  (`https://eco.com/support/en/articles/17190470-nacha-file-format-explained-records-fields-and-a-worked-example`,
+  a payments vendor's support article, no date). Gave positions, lengths and content for record types 1, 5, 6, 7
+  (addenda type `05`), 8 and 9, the computations (entry hash is the sum of the 8-digit receiving DFI ids kept to the
+  rightmost 10 digits; totals with implied decimals; block count is lines ÷ 10; the last block padded with lines of
+  94 nines), and a worked example. It did not specify the file header reference code or the addenda sequence number
+  field, and the example's spacing in the rendered page is uncertain.
+- **Return and change codes:** Modern Treasury, "ACH Return Codes"
+  (`https://docs.moderntreasury.com/payments/docs/ach-return-codes`, a vendor's API docs, no date). Lists R01–R39
+  and R45 with return time frames, and change codes C01–C03, C05–C09, C13 and C14. It does **not** list C04 or
+  C10–C12 or the later R-codes, and says nothing about how a return or notification is represented in the file.
+- **Return and NOC addenda layouts:** the `addenda99.go` and `addenda98.go` source files of the open-source
+  `moov-io/ach` project (Apache-2.0; `https://raw.githubusercontent.com/moov-io/ach/master/addenda99.go` and
+  `.../addenda98.go`). Used only to learn the field positions of addenda type `99` (return: return code 4–6,
+  original trace 7–21, date of death 22–27, original receiving DFI 28–35, information 36–79, trace 80–94) and type
+  `98` (change: change code 4–6, original trace 7–21, original receiving DFI 28–35, corrected data 36–64, trace
+  80–94, with the corrected-data layout depending on the change code). No code was copied; Twinrail's codec is its
+  own implementation (plan M6).
+
+Pages tried and **not** readable (binary PDF, nothing extracted): a Jack Henry NACHA file formats PDF and an East
+West Bank NACHA import specification PDF. A Regions return-code PDF returned 404. Search result snippets were seen
+for other sites but those pages were not read and are not cited.
+
+Not verified at all, so not used yet: the routing-number check digit algorithm (R28), which return codes apply to
+which SEC codes, settlement and return deadlines beyond the vendor table, and anything about prenotes or IAT.
+
+Consequence for the pack: the NACHA rule pack in v0.1 should cover only what these sources support (record
+structure, control totals, a stated subset of return and change codes), mark each rule's `source` with the page it
+came from, and list the rest as "not covered".

@@ -4,57 +4,298 @@
   "title": "Twinrail scenario file, format 1",
   "description": "Scripted emulator behaviour for matching messages. First match wins. See docs/scenarios.md.",
   "type": "object",
-  "required": ["format", "scenarios"],
+  "required": [
+    "format",
+    "scenarios"
+  ],
   "additionalProperties": false,
   "properties": {
-    "format": { "const": 1 },
+    "format": {
+      "const": 1
+    },
     "scenarios": {
       "type": "array",
-      "items": { "$ref": "#/$defs/scenario" }
+      "items": {
+        "$ref": "#/$defs/scenario"
+      }
     }
   },
   "$defs": {
-    "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$" },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+    },
     "scenario": {
       "type": "object",
-      "required": ["id", "action"],
+      "required": [
+        "id",
+        "action"
+      ],
       "additionalProperties": false,
       "properties": {
-        "id": { "$ref": "#/$defs/id" },
-        "description": { "type": "string", "minLength": 1 },
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
         "match": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "message": { "type": "string", "pattern": "^[a-z]{4}\\.[0-9]{3}\\.[0-9]{3}\\.[0-9]{2}$" },
-            "where": { "type": "array", "items": { "$ref": "#/$defs/matcher" } }
+            "message": {
+              "type": "string",
+              "pattern": "^([a-z]{4}\\.[0-9]{3}\\.[0-9]{3}\\.[0-9]{2}|nacha\\.entry)$"
+            },
+            "where": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/matcher"
+              }
+            }
           }
         },
         "action": {
           "type": "object",
-          "required": ["type"],
+          "required": [
+            "type"
+          ],
           "oneOf": [
             {
               "properties": {
-                "type": { "const": "reject" },
-                "reason": { "type": "string", "pattern": "^[A-Z0-9]{2,4}$" },
-                "text": { "type": "string", "minLength": 1 }
+                "type": {
+                  "const": "reject"
+                },
+                "reason": {
+                  "type": "string",
+                  "pattern": "^[A-Z0-9]{2,4}$"
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1
+                }
               },
-              "required": ["type", "reason"],
+              "required": [
+                "type",
+                "reason"
+              ],
               "additionalProperties": false
             },
             {
               "properties": {
-                "type": { "const": "delay" },
-                "duration": { "type": "string", "pattern": "^P(?!$)(T(?=\\d)|\\d)" }
+                "type": {
+                  "const": "delay"
+                },
+                "duration": {
+                  "type": "string",
+                  "pattern": "^P(?!$)(T(?=\\d)|\\d)"
+                }
               },
-              "required": ["type", "duration"],
+              "required": [
+                "type",
+                "duration"
+              ],
               "additionalProperties": false
             },
             {
-              "properties": { "type": { "const": "drop" } },
-              "required": ["type"],
+              "properties": {
+                "type": {
+                  "const": "drop"
+                }
+              },
+              "required": [
+                "type"
+              ],
               "additionalProperties": false
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "return"
+                },
+                "code": {
+                  "type": "string",
+                  "pattern": "^R[0-9]{2}$"
+                },
+                "after": {
+                  "type": "string",
+                  "pattern": "^P(?!$)(T(?=\\d)|\\d)"
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "type",
+                "code"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "oneOf": [
+                {
+                  "properties": {
+                    "type": {
+                      "const": "noc"
+                    },
+                    "code": {
+                      "const": "C01"
+                    },
+                    "account": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "code",
+                    "account"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "const": "noc"
+                    },
+                    "code": {
+                      "const": "C02"
+                    },
+                    "routing": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "code",
+                    "routing"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "const": "noc"
+                    },
+                    "code": {
+                      "const": "C03"
+                    },
+                    "routing": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "account": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "code",
+                    "routing",
+                    "account"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "const": "noc"
+                    },
+                    "code": {
+                      "const": "C05"
+                    },
+                    "transactionCode": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "code",
+                    "transactionCode"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "const": "noc"
+                    },
+                    "code": {
+                      "const": "C06"
+                    },
+                    "account": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "transactionCode": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "code",
+                    "account",
+                    "transactionCode"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "const": "noc"
+                    },
+                    "code": {
+                      "const": "C07"
+                    },
+                    "routing": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "account": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "transactionCode": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "code",
+                    "routing",
+                    "account",
+                    "transactionCode"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {
+                    "type": {
+                      "const": "noc"
+                    },
+                    "code": {
+                      "const": "C09"
+                    },
+                    "individualId": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "code",
+                    "individualId"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
             }
           ]
         }
@@ -62,35 +303,109 @@
     },
     "matcher": {
       "type": "object",
-      "required": ["path"],
+      "required": [
+        "path"
+      ],
       "additionalProperties": false,
       "properties": {
         "path": {
           "type": "string",
           "pattern": "^/((\\*|[A-Za-z_][A-Za-z0-9_.-]*)(\\[[1-9][0-9]{0,3}\\])?/)*((\\*|[A-Za-z_][A-Za-z0-9_.-]*)(\\[[1-9][0-9]{0,3}\\])?|@[A-Za-z_][A-Za-z0-9_.-]*)$"
         },
-        "present": { "const": true },
-        "absent": { "const": true },
-        "equals": { "type": "string" },
-        "notEquals": { "type": "string" },
-        "oneOf": { "type": "array", "minItems": 1, "items": { "type": "string" } },
-        "matches": { "type": "string" },
-        "maxLength": { "type": "integer", "minimum": 0 },
-        "minLength": { "type": "integer", "minimum": 0 },
-        "min": { "type": ["integer", "string"] },
-        "max": { "type": ["integer", "string"] }
+        "present": {
+          "const": true
+        },
+        "absent": {
+          "const": true
+        },
+        "equals": {
+          "type": "string"
+        },
+        "notEquals": {
+          "type": "string"
+        },
+        "oneOf": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "matches": {
+          "type": "string"
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minLength": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "min": {
+          "type": [
+            "integer",
+            "string"
+          ]
+        },
+        "max": {
+          "type": [
+            "integer",
+            "string"
+          ]
+        }
       },
       "oneOf": [
-        { "required": ["present"] },
-        { "required": ["absent"] },
-        { "required": ["equals"] },
-        { "required": ["notEquals"] },
-        { "required": ["oneOf"] },
-        { "required": ["matches"] },
-        { "required": ["maxLength"] },
-        { "required": ["minLength"] },
-        { "required": ["min"] },
-        { "required": ["max"] }
+        {
+          "required": [
+            "present"
+          ]
+        },
+        {
+          "required": [
+            "absent"
+          ]
+        },
+        {
+          "required": [
+            "equals"
+          ]
+        },
+        {
+          "required": [
+            "notEquals"
+          ]
+        },
+        {
+          "required": [
+            "oneOf"
+          ]
+        },
+        {
+          "required": [
+            "matches"
+          ]
+        },
+        {
+          "required": [
+            "maxLength"
+          ]
+        },
+        {
+          "required": [
+            "minLength"
+          ]
+        },
+        {
+          "required": [
+            "min"
+          ]
+        },
+        {
+          "required": [
+            "max"
+          ]
+        }
       ]
     }
   }

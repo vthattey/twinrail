@@ -45,6 +45,35 @@ scenarios:
 | `reject` | `reason` (required), `text` | Answer with a rejection carrying the reason code. |
 | `delay` | `duration` (ISO 8601, greater than zero, such as `PT30S`) | Answer after that much **virtual** time. |
 | `drop` | none | Never answer, so the sender's time-out fires. |
+| `return` | `code` (R-code, required), `after` (ISO 8601, zero or more, default none), `text` | ACH only: return the entry with that return code, `after` it settles. |
+| `noc` | `code` (C-code) and the corrected values it needs | ACH only: notify of a change for a settled entry. |
+
+### ACH scenarios
+
+Match ACH entries with `message: nacha.entry` and paths into the entry view described in
+[ADR 0011](decisions/0011-ach-scenarios-and-outputs.md): `/Entry/TransactionCode`, `RoutingNumber`, `AccountNumber`,
+`Amount` (decimal), `IndividualId`, `IndividualName`, `TraceNumber`, `SecCode`, `CompanyName`, `CompanyId`,
+`EntryDescription`, `EffectiveEntryDate`.
+
+```yaml
+format: 1
+scenarios:
+  - id: closed-account
+    match:
+      message: nacha.entry
+      where: [{ path: /Entry/IndividualName, equals: "JANE DOE" }]
+    action: { type: return, code: R02 }
+  - id: moved-bank
+    match:
+      message: nacha.entry
+      where: [{ path: /Entry/AccountNumber, equals: "987654321" }]
+    action: { type: noc, code: C01, account: "55555555" }
+```
+
+Supported change codes and the values each needs: C01 `account`; C02 `routing`; C03 `routing`, `account`; C05
+`transactionCode`; C06 `account`, `transactionCode`; C07 `routing`, `account`, `transactionCode`; C09
+`individualId`. Return codes are the R-codes in the shipped table (R01–R39 and R45). `reject` and `drop` do not
+apply to ACH entries. Code tables come from a secondary source; see [nacha.md](nacha.md).
 
 Return and recall actions arrive with the rails that support them
 ([ADR 0009](decisions/0009-v01-rtr-scope-follows-published-message-set.md)).
