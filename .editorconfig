@@ -13,3 +13,13 @@ indent_size = 2
 
 [*.md]
 trim_trailing_whitespace = false
+
+# google-java-format (enforced by Spotless) uses 2 spaces
+[*.java]
+indent_size = 2
+
+[*.kts]
+indent_size = 4
+
+[*.bat]
+end_of_line = crlf
