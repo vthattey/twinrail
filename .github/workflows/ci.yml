@@ -35,3 +35,14 @@ jobs:
         run: docker build -t twinrail:ci .
       - name: Start it, smoke test it, record size and start-up time
         run: scripts/image-check.sh twinrail:ci
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Testcontainers module against the image
+        run: TWINRAIL_IMAGE=twinrail:ci ./gradlew :testcontainers:test --no-daemon
+      - name: Example project against the image
+        run: |
+          ./gradlew :testcontainers:publishToMavenLocal --no-daemon
+          TWINRAIL_IMAGE=twinrail:ci ./gradlew -p examples/junit5 test --no-daemon

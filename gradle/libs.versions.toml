@@ -8,6 +8,7 @@ snakeyaml-engine = "3.2"
 json-schema-validator = "3.0.9"
 javalin = "6.7.0"
 slf4j = "2.0.17"
+testcontainers = "2.0.5"
 
 [libraries]
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
@@ -19,6 +20,7 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "jaxb" }
 snakeyaml-engine = { module = "org.snakeyaml:snakeyaml-engine", version.ref = "snakeyaml-engine" }
 javalin = { module = "io.javalin:javalin", version.ref = "javalin" }
+testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 json-schema-validator = { module = "com.networknt:json-schema-validator", version.ref = "json-schema-validator" }
 

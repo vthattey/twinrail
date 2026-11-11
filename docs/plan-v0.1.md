@@ -63,8 +63,12 @@ Scope is the MVP in `docs/brief.md` as amended by ADR 0009. Decisions: `docs/dec
       (`docs/ui.md`; checked in a real browser: htmx runs under the strict CSP, rows stay open across refreshes.)
 
 ### M8. Testcontainers module (Java, JUnit 5)
-- [ ] Container class, typed client over the control API, example project.
-- [ ] Publish to Maven Central; submit to the Testcontainers module catalogue.
+- [x] Container class, typed client over the control API, example project. (`docs/testcontainers.md`; the
+      client is tested against the real server, the container class without Docker; the real-image test and
+      the example run in CI against the built image and had not run when this was written.)
+- [ ] Publish to Maven Central; submit to the Testcontainers module catalogue. Build, POM, sources and javadoc
+      jars and signing are set up; the namespace, tokens, upload and catalogue submission are the maintainer's
+      (steps in `docs/testcontainers.md`).
 
 ### M9. Release v0.1
 - [ ] Docs complete: quickstart, rule-pack and scenario guides, API reference, limitations.
