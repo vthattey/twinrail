@@ -34,4 +34,4 @@ jobs:
       - name: Build the image
         run: docker build -t twinrail:ci .
       - name: Start it, smoke test it, record size and start-up time
-        run: scripts/image-check.sh twinrail:ci
+        run: bash scripts/image-check.sh twinrail:ci
