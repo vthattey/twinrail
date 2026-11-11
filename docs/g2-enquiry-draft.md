@@ -1,10 +1,12 @@
-# G2: enquiry to Payments Canada (draft, not sent)
+# G2: enquiry to Payments Canada (sent 2026-11-11, awaiting reply)
+
+> **Status:** sent by the maintainer on 2026-11-11. No reply yet. Follow-up planned around 2026-11-25 if there is
+> none. The text below is the draft as prepared; the sent version may differ slightly.
 
 Gate G2 in the [v0.1 plan](plan-v0.1.md): may a public, open-source rule pack reference the Real-Time Rail
 specifications? It blocks M5 (the RTR pack), and the v0.1 release waits for the answer (decision of 2026-11-10).
 
-The text below is a **draft for the maintainer to review, edit and send** from their own address. Nothing has been
-sent. Replace the bracketed parts. The address comes from the companion document's notice and the research notes
+The text below was a **draft for the maintainer to review, edit and send** from their own address. The address comes from the companion document's notice and the research notes
 (`research.md`, section 3); confirm it is still the right contact before sending.
 
 ---
