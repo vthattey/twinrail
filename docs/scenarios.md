@@ -52,5 +52,5 @@ Return and recall actions arrive with the rails that support them
 Scenario files are loaded strictly, like rule packs: unknown fields, unknown action types and duplicate ids are
 errors that say what to change.
 
-> Status: the loader and matching are implemented in `core`. Wiring scenarios to the lifecycle (M3) and the control
-> API (M4) is not done yet.
+> Status: the loader, matching and the payment lifecycle ([lifecycle](lifecycle.md)) are implemented in `core`.
+> Wiring scenarios to the control API (M4) is not done yet.

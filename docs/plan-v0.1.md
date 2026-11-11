@@ -36,9 +36,9 @@ Scope is the MVP in `docs/brief.md` as amended by ADR 0009. Decisions: `docs/dec
 - [x] Rule-pack linter: the loader refuses a rule without `source`; a test loads and schema-checks every shipped pack.
 
 ### M3. Payment lifecycle and ledger
-- [ ] State machine: accepted → settled → rejected / timed out (returns/recalls on NACHA only).
-- [ ] Ledger: balances per test account; `camt.053` and `camt.054` consistent with activity (property tests).
-- [ ] Time-out driven by the virtual clock.
+- [x] State machine: accepted → settled → rejected / timed out (returns/recalls on NACHA only).
+- [x] Ledger: balances per test account; `camt.053` and `camt.054` consistent with activity (property tests).
+- [x] Time-out driven by the virtual clock.
 
 ### M4. Server, control API, webhooks
 - [ ] Javalin server; REST message endpoints.

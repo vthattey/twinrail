@@ -17,3 +17,6 @@ All notable changes to this project are documented here. The format is based on
   and source specification. Scenario files with first-match-wins matching and reject, delay and drop actions.
   Restricted XPath-like element paths. An illustrative example pack. Guides: `docs/rule-packs.md`,
   `docs/scenarios.md`.
+- `core`: payment lifecycle (accepted, settled, rejected, timed out) driven by the virtual clock; rules, then
+  scenarios, then a funds reservation. Ledger with balances per test account and `camt.053.001.08` statements and
+  `camt.054.001.08` notifications generated from it. Guide: `docs/lifecycle.md`.
