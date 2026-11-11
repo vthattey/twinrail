@@ -41,3 +41,7 @@ All notable changes to this project are documented here. The format is based on
 - Inspector UI at `/ui`: a live timeline of messages, payment and ACH state changes and clock moves, with the rule
   behind each rejection or return, accounts, webhook deliveries and clock buttons. Server-rendered with vendored
   htmx 2.0.4 (no CDN), escaped by construction, strict Content-Security-Policy. Guide: `docs/ui.md`.
+- `testcontainers`: `TwinrailContainer` (Testcontainers 2.0) and a typed `TwinrailClient` for the control API,
+  published as `twinrail-testcontainers` (sources and javadoc jars, POM, optional signing). A standalone JUnit 5
+  example in `examples/junit5`, and CI steps that run the module's real-image test and the example against the
+  built image. Guide: `docs/testcontainers.md`.
