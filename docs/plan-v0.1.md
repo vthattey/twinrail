@@ -71,8 +71,13 @@ Scope is the MVP in `docs/brief.md` as amended by ADR 0009. Decisions: `docs/dec
       (steps in `docs/testcontainers.md`).
 
 ### M9. Release v0.1
-- [ ] Docs complete: quickstart, rule-pack and scenario guides, API reference, limitations.
-- [ ] Demo GIF (send `pacs.008`, clock jump, time-out, inspector shows why).
+- [x] Docs complete: quickstart, rule-pack and scenario guides, API reference, limitations. (Done for what
+      exists: `docs/quickstart.md` was run command by command; `docs/limitations.md` lists the gaps, including
+      that the RTR pack (M5, blocked on G2) does not exist, so the demo and README describe JSON answers, not
+      `pacs.002`.)
+- [x] Demo GIF (send `pacs.008`, clock jump, time-out, inspector shows why). (`docs/media/twinrail-demo.gif`:
+      rejection with its rule, then a time-out by clock jump. It shows JSON answers, not `pacs.002`; re-record
+      when the RTR pack (M5) exists.)
 - [ ] Tag v0.1.0; article draft; Show HN / r/fintech / community posts.
 
 ## Order and dependencies

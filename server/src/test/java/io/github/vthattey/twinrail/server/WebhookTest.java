@@ -79,7 +79,12 @@ class WebhookTest {
 
   @Test
   void settledPaymentSendsAcceptedThenSettledEventsSigned() throws Exception {
-    assertEquals(201, send("POST", "/_twinrail/webhooks", HOOK).statusCode());
+    var registered = send("POST", "/_twinrail/webhooks", HOOK);
+    assertEquals(201, registered.statusCode());
+    assertEquals("{\"id\":\"WH-001\",\"url\":\"http://localhost:9/hook\"}", registered.body());
+    assertEquals(
+        "[{\"id\":\"WH-001\",\"url\":\"http://localhost:9/hook\"}]",
+        send("GET", "/_twinrail/webhooks", null).body());
     send("POST", "/messages", sample());
 
     assertEquals(2, calls.size());

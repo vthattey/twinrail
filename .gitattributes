@@ -2,3 +2,4 @@
 *.bat text eol=crlf
 *.jar binary
 ui/src/main/resources/ui/static/htmx.min.js binary
+*.gif binary

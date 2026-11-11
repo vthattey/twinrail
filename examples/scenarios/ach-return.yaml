@@ -1,0 +1,16 @@
+# ACH: JANE DOE's account is closed (returned R02 an hour after settlement); JOHN ROE's bank moved
+# (a change notification C01 with the corrected account number).
+format: 1
+scenarios:
+  - id: closed-account
+    match:
+      message: nacha.entry
+      where:
+        - { path: /Entry/IndividualName, equals: "JANE DOE" }
+    action: { type: return, code: R02, after: PT1H }
+  - id: moved-bank
+    match:
+      message: nacha.entry
+      where:
+        - { path: /Entry/IndividualName, equals: "JOHN ROE" }
+    action: { type: noc, code: C01, account: "55555555" }

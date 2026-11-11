@@ -25,6 +25,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Build, test and check formatting
         run: ./gradlew build spotlessCheck --no-daemon
+      - name: Same responses across JVM launches
+        if: runner.os == 'Linux'
+        run: |
+          ./gradlew :server:installDist --no-daemon
+          scripts/determinism-check.sh
 
   image:
     name: Container image
