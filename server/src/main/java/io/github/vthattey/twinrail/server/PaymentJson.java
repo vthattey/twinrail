@@ -25,10 +25,23 @@ final class PaymentJson {
     m.put("closedAt", p.closedAt() == null ? null : p.closedAt().toString());
     Rejection r = p.rejection();
     if (r != null) {
-      m.put(
-          "rejection",
-          Map.of("rule", r.ruleId(), "reason", r.reason(), "text", r.text(), "source", r.source()));
+      // A LinkedHashMap, not Map.of: Map.of iterates in an order that changes from one JVM run to
+      // the next, and the same inputs must give byte-identical responses.
+      Map<String, Object> rejection = new LinkedHashMap<>();
+      rejection.put("rule", r.ruleId());
+      rejection.put("reason", r.reason());
+      rejection.put("text", r.text());
+      rejection.put("source", r.source());
+      m.put("rejection", rejection);
     }
+    return m;
+  }
+
+  /** A webhook target as the API shows it, with a fixed key order. */
+  static Map<String, Object> webhook(String id, String url) {
+    Map<String, Object> m = new LinkedHashMap<>();
+    m.put("id", id);
+    m.put("url", url);
     return m;
   }
 }

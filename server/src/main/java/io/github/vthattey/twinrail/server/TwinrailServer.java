@@ -146,7 +146,7 @@ public final class TwinrailServer {
             json(
                 ctx,
                 emulator.webhookTargets().stream()
-                    .map(t -> Map.of("id", t.id(), "url", t.url()))
+                    .map(t -> PaymentJson.webhook(t.id(), t.url()))
                     .toList()));
     route("GET", API + "/webhooks/deliveries", ctx -> json(ctx, emulator.deliveries()));
     route(
@@ -361,7 +361,7 @@ public final class TwinrailServer {
             b.has("url") ? b.get("url").getAsString() : null,
             b.has("secret") ? b.get("secret").getAsString() : null);
     ctx.status(HttpStatus.CREATED);
-    json(ctx, Map.of("id", target.id(), "url", target.url()));
+    json(ctx, PaymentJson.webhook(target.id(), target.url()));
   }
 
   private void getPayment(Context ctx) {

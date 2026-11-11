@@ -45,3 +45,11 @@ All notable changes to this project are documented here. The format is based on
   published as `twinrail-testcontainers` (sources and javadoc jars, POM, optional signing). A standalone JUnit 5
   example in `examples/junit5`, and CI steps that run the module's real-image test and the example against the
   built image. Guide: `docs/testcontainers.md`.
+- Quickstart and limitations pages, a README that states what works and what does not, and example messages and
+  scenario files under `examples/`.
+- `scripts/determinism-check.sh` and a CI step: three separate JVM launches must give byte-identical responses.
+
+### Fixed
+- Responses are now byte-identical across JVM launches. A rejection's keys, a webhook target's keys and the
+  corrected values of a change notification were emitted in an order that changed from one JVM run to the next
+  (`Map.of` and `Map.copyOf`); they now keep a fixed order.

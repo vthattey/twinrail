@@ -92,6 +92,11 @@ class TwinrailServerTest {
     var rejection = obj(r).getAsJsonObject("rejection");
     assertEquals("EX-002", rejection.get("rule").getAsString());
     assertEquals("AM01", rejection.get("reason").getAsString());
+    // Key order is part of "same inputs, same bytes": it must not change between JVM runs.
+    assertTrue(
+        r.body().contains("\"rejection\":{\"rule\":\"EX-002\",\"reason\":\"AM01\",\"text\":\""),
+        r.body());
+    assertTrue(r.body().indexOf("\"text\"") < r.body().indexOf("\"source\""), r.body());
   }
 
   @Test

@@ -217,7 +217,12 @@ class AchEngineTest {
         engine(
             "format: 1\nscenarios:\n  - id: m\n    action: { type: noc, code: C03, routing: \"021000021\","
                 + " account: \"12345\" }\n");
-    String line = engine.submit(creditFile()).entries().get(0).change().addendaRecord();
+    var change = engine.submit(creditFile()).entries().get(0).change();
+    assertEquals(
+        List.of("routing", "account"),
+        List.copyOf(change.corrected().keySet()),
+        "values keep the order the scenario gave them, on every JVM run");
+    String line = change.addendaRecord();
     String field = line.substring(35, 64);
     assertEquals(29, field.length());
     assertTrue(field.startsWith("021000021"));

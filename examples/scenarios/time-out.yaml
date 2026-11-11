@@ -1,0 +1,8 @@
+# A payment that is never answered: the sender's time-out fires when the virtual clock reaches it.
+format: 1
+scenarios:
+  - id: black-hole
+    description: Never answer credit transfers
+    match:
+      message: pacs.008.001.08
+    action: { type: drop }

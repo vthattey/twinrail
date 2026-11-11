@@ -31,7 +31,9 @@ public sealed interface Action {
    */
   record Noc(String code, Map<String, String> corrected) implements Action {
     public Noc {
-      corrected = Map.copyOf(corrected);
+      // Insertion order is kept: Map.copyOf would reorder entries differently from one JVM run to
+      // the next.
+      corrected = java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(corrected));
     }
   }
 }
