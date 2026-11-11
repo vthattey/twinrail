@@ -26,3 +26,6 @@ All notable changes to this project are documented here. The format is based on
   and local-only targets.
 - `server`: OpenAPI 3.1 description of the message endpoint, control API and webhook event, served at
   `/_twinrail/openapi.yaml` and contract-tested against the server. Account balances are now JSON strings.
+- Dockerfile (multi-stage, AppCDS class archive, unprivileged user), `scripts/image-check.sh`, a CI job that builds
+  the image, smoke-tests it and records size and start-up time, and a workflow that publishes the image on version
+  tags. `server`: runnable distribution (`installDist`), eager codec warm-up at start. Guide: `docs/docker.md`.

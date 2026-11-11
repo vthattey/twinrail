@@ -44,7 +44,8 @@ Scope is the MVP in `docs/brief.md` as amended by ADR 0009. Decisions: `docs/dec
 - [x] Javalin server; REST message endpoints.
 - [x] `/_twinrail/` control API plus OpenAPI, contract-tested (ADR 0005).
 - [x] Signed webhooks with retry on virtual time; no outbound traffic beyond configured local targets.
-- [ ] Dockerfile; image published on tag; startup time recorded in CI.
+- [~] Dockerfile; image published on tag; startup time recorded in CI. Written (`docs/docker.md`) but not yet run:
+      no Docker locally, so the first CI run is its first test. Distribution and AppCDS archive verified outside Docker.
 
 ### M5. RTR pack (after G2)
 - [ ] `pacs.008` in → `pacs.002` accept/reject, settlement commit advice, `pacs.028`, `admi.002`, heartbeat, time-out.
