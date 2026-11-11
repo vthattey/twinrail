@@ -10,6 +10,11 @@ virtual, so a time-out, a return or a cut-off takes one API call instead of a wa
 > release tag, no container image on a registry, no Maven artifact. Build it from source with the
 > [quickstart](docs/quickstart.md). Read the [limitations](docs/limitations.md) before deciding whether it fits.
 
+![Twinrail inspector: a rejection with the rule behind it, then a payment that times out when the virtual clock moves 30 seconds](docs/media/twinrail-demo.gif)
+
+*A rejection and the rule behind it, then a time-out reached by moving the virtual clock. What the recording shows
+is described in [docs/media](docs/media/README.md).*
+
 ## What works today
 
 - **ISO 20022 credit transfers.** Send a `pacs.008`; it is checked against a rule pack, settled on a ledger, rejected

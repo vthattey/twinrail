@@ -47,6 +47,7 @@ All notable changes to this project are documented here. The format is based on
   built image. Guide: `docs/testcontainers.md`.
 - Quickstart and limitations pages, a README that states what works and what does not, and example messages and
   scenario files under `examples/`.
+- A demo recording of the inspector (`docs/media/twinrail-demo.gif`).
 - `scripts/determinism-check.sh` and a CI step: three separate JVM launches must give byte-identical responses.
 
 ### Fixed
