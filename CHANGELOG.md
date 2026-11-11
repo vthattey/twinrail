@@ -20,3 +20,5 @@ All notable changes to this project are documented here. The format is based on
 - `core`: payment lifecycle (accepted, settled, rejected, timed out) driven by the virtual clock; rules, then
   scenarios, then a funds reservation. Ledger with balances per test account and `camt.053.001.08` statements and
   `camt.054.001.08` notifications generated from it. Guide: `docs/lifecycle.md`.
+- `server`: Javalin server with `POST /messages` and the `/_twinrail/` control API (clock, accounts, statements,
+  scenarios, payments, session export, reset). Guide: `docs/control-api.md`.
