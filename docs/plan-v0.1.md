@@ -53,7 +53,8 @@ Scope is the MVP in `docs/brief.md` as amended by ADR 0009. Decisions: `docs/dec
 - [ ] End-to-end tests including the demo scenario (send, jump clock, time-out).
 
 ### M6. NACHA ACH
-- [ ] NACHA file codec (own implementation; Prowide does not cover it) with golden files.
+- [x] NACHA file codec (own implementation; Prowide does not cover it) with golden files. (`docs/nacha.md`;
+      layouts from secondary sources, see `docs/research.md` section 7.)
 - [ ] Returns (R-codes) and NOCs (C-codes) via scenarios; pack with source versions.
 
 ### M7. Inspector UI

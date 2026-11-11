@@ -29,3 +29,6 @@ All notable changes to this project are documented here. The format is based on
 - Dockerfile (multi-stage, AppCDS class archive, unprivileged user), `scripts/image-check.sh`, a CI job that builds
   the image, smoke-tests it and records size and start-up time, and a workflow that publishes the image on version
   tags. `server`: runnable distribution (`installDist`), eager codec warm-up at start. Guide: `docs/docker.md`.
+- `core`: ACH (NACHA) file codec: table-driven record layouts, parser, deterministic writer, builder that derives
+  control records, and a control-total checker with stable problem ids. Guide: `docs/nacha.md`. Research notes on
+  the sources read: `docs/research.md` section 7.
