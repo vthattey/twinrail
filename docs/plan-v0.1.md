@@ -7,6 +7,7 @@ Scope is the MVP in `docs/brief.md` as amended by ADR 0009. Decisions: `docs/dec
 
 - [ ] **G1. Validate demand** with 5–10 developers (RTR participants, PSPs, ACH fintechs) using a README draft and
       the demo storyboard. Output: notes in `docs/validation.md`, no names or employers.
+      Method, questions and decision rule are in `docs/validation.md`; no conversations held yet.
 - [ ] **G2. Payments Canada enquiry** (ISO20022@payments.ca): may a public open-source rule pack reference the RTR
       specs? Blocks M5 (RTR pack) only.
 - [x] **G3. Spike: Prowide open edition.** Done: classes present, round-trip stable, ~1.4 s cold start (~0.95 s with
