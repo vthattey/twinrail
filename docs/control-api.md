@@ -4,7 +4,11 @@ The server speaks JSON over HTTP, except statements, which are ISO 20022 XML. Er
 `{"error": "<what went wrong and what to do>"}` with status 400 (bad input), 404 (not found) or 500 (a bug; please
 report it).
 
-> Status: M4 in progress. The OpenAPI file and contract tests and the Docker image are not done yet. Until the OpenAPI file exists, treat this page as the contract, and expect changes before v0.1.
+> Status: M4 in progress; the Docker image is not done yet. The machine-readable contract is
+> [`control-1.yaml`](../server/src/main/resources/openapi/control-1.yaml) (OpenAPI 3.1), also served at
+> `GET /_twinrail/openapi.yaml`. A contract test checks that the file and the server agree: the same operations,
+> valid request bodies, documented statuses, and responses and webhook bodies that validate against its schemas.
+> This page is the readable summary; if they ever differ, the OpenAPI file wins and that is a bug to report.
 
 ## Starting
 
@@ -22,6 +26,7 @@ This is a JSON view for now; scheme-specific replies such as `pacs.002` arrive w
 
 | Method and path | Body | Effect |
 | --- | --- | --- |
+| `GET /openapi.yaml` | | This API as an OpenAPI 3.1 document. |
 | `GET /health` | | `{"status":"ok"}` |
 | `POST /reset` | | Back to the start: clock, ids, ledger, payments, scenarios, recording. 204. |
 | `GET /clock` | | Current virtual time. |

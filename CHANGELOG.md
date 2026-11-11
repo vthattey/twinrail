@@ -24,3 +24,5 @@ All notable changes to this project are documented here. The format is based on
   scenarios, payments, session export, reset). Guide: `docs/control-api.md`.
 - `server`: signed webhooks (HMAC-SHA256) for payment state changes, with retries scheduled on the virtual clock
   and local-only targets.
+- `server`: OpenAPI 3.1 description of the message endpoint, control API and webhook event, served at
+  `/_twinrail/openapi.yaml` and contract-tested against the server. Account balances are now JSON strings.

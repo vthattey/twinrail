@@ -42,7 +42,7 @@ Scope is the MVP in `docs/brief.md` as amended by ADR 0009. Decisions: `docs/dec
 
 ### M4. Server, control API, webhooks
 - [x] Javalin server; REST message endpoints.
-- [~] `/_twinrail/` control API (done, `docs/control-api.md`); OpenAPI and contract tests not done (ADR 0005).
+- [x] `/_twinrail/` control API plus OpenAPI, contract-tested (ADR 0005).
 - [x] Signed webhooks with retry on virtual time; no outbound traffic beyond configured local targets.
 - [ ] Dockerfile; image published on tag; startup time recorded in CI.
 

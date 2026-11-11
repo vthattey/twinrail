@@ -33,6 +33,7 @@ public final class TwinrailServer {
 
   private final Emulator emulator;
   private final Javalin app;
+  private final List<String> routes = new java.util.ArrayList<>();
   private final WebhookSender sender;
 
   public TwinrailServer(Emulator emulator) {
@@ -46,7 +47,7 @@ public final class TwinrailServer {
     this.emulator = emulator;
     this.sender = sender;
     this.app = Javalin.create(config -> config.showJavalinBanner = false);
-    routes();
+    registerRoutes();
     errors();
   }
 
@@ -63,41 +64,74 @@ public final class TwinrailServer {
     app.stop();
   }
 
-  private void routes() {
-    app.post("/messages", this::postMessage);
+  private void route(String method, String path, io.javalin.http.Handler handler) {
+    routes.add(method + " " + path);
+    switch (method) {
+      case "GET" -> app.get(path, handler);
+      case "POST" -> app.post(path, handler);
+      case "PUT" -> app.put(path, handler);
+      case "DELETE" -> app.delete(path, handler);
+      default -> throw new IllegalArgumentException(method);
+    }
+  }
 
-    app.get(API + "/health", ctx -> json(ctx, Map.of("status", "ok")));
-    app.post(
+  /** Every registered route as {@code METHOD /path}, for the contract test. */
+  List<String> routes() {
+    return List.copyOf(routes);
+  }
+
+  private static String openApi() {
+    try (var in = TwinrailServer.class.getResourceAsStream("/openapi/control-1.yaml")) {
+      return new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+    } catch (java.io.IOException e) {
+      throw new IllegalStateException("The OpenAPI file is missing from the server build.", e);
+    }
+  }
+
+  private void registerRoutes() {
+    route(
+        "GET", API + "/openapi.yaml", ctx -> ctx.contentType("application/yaml").result(openApi()));
+    route("POST", "/messages", this::postMessage);
+
+    route("GET", API + "/health", ctx -> json(ctx, Map.of("status", "ok")));
+    route(
+        "POST",
         API + "/reset",
         ctx -> {
           emulator.reset();
           ctx.status(HttpStatus.NO_CONTENT);
         });
 
-    app.get(API + "/clock", ctx -> json(ctx, Map.of("now", emulator.now().toString())));
-    app.post(API + "/clock/advance", this::advanceClock);
-    app.post(API + "/clock/set", this::setClock);
+    route("GET", API + "/clock", ctx -> json(ctx, Map.of("now", emulator.now().toString())));
+    route("POST", API + "/clock/advance", this::advanceClock);
+    route("POST", API + "/clock/set", this::setClock);
 
-    app.post(API + "/accounts", this::openAccount);
-    app.get(API + "/accounts", ctx -> json(ctx, emulator.accounts()));
-    app.get(API + "/accounts/{id}", this::getAccount);
-    app.get(API + "/accounts/{id}/statement", this::statement);
+    route("POST", API + "/accounts", this::openAccount);
+    route(
+        "GET",
+        API + "/accounts",
+        ctx -> json(ctx, emulator.accounts().stream().map(TwinrailServer::accountJson).toList()));
+    route("GET", API + "/accounts/{id}", this::getAccount);
+    route("GET", API + "/accounts/{id}/statement", this::statement);
 
-    app.put(API + "/scenarios", this::putScenarios);
-    app.get(
+    route("PUT", API + "/scenarios", this::putScenarios);
+    route(
+        "GET",
         API + "/scenarios",
         ctx ->
             json(
                 ctx,
                 emulator.scenarios().scenarios().stream().map(s -> Map.of("id", s.id())).toList()));
 
-    app.get(
+    route(
+        "GET",
         API + "/payments",
         ctx -> json(ctx, emulator.payments().stream().map(PaymentJson::of).toList()));
-    app.get(API + "/payments/{id}", this::getPayment);
+    route("GET", API + "/payments/{id}", this::getPayment);
 
-    app.post(API + "/webhooks", this::addWebhook);
-    app.get(
+    route("POST", API + "/webhooks", this::addWebhook);
+    route(
+        "GET",
         API + "/webhooks",
         ctx ->
             json(
@@ -105,8 +139,9 @@ public final class TwinrailServer {
                 emulator.webhookTargets().stream()
                     .map(t -> Map.of("id", t.id(), "url", t.url()))
                     .toList()));
-    app.get(API + "/webhooks/deliveries", ctx -> json(ctx, emulator.deliveries()));
-    app.delete(
+    route("GET", API + "/webhooks/deliveries", ctx -> json(ctx, emulator.deliveries()));
+    route(
+        "DELETE",
         API + "/webhooks/{id}",
         ctx -> {
           if (emulator.removeWebhook(ctx.pathParam("id"))) {
@@ -122,7 +157,8 @@ public final class TwinrailServer {
           }
         });
 
-    app.get(
+    route(
+        "GET",
         API + "/session",
         ctx -> ctx.contentType("application/json").result(SessionFiles.write(emulator.session())));
   }
@@ -159,7 +195,18 @@ public final class TwinrailServer {
     emulator.deliverDue(sender);
     Map<String, Object> out = new LinkedHashMap<>();
     out.put("now", emulator.now().toString());
-    out.put("transitions", done);
+    out.put(
+        "transitions",
+        done.stream()
+            .map(t -> {
+              Map<String, Object> m = new LinkedHashMap<>();
+              m.put("paymentId", t.paymentId());
+              m.put("from", t.from() == null ? null : t.from().name());
+              m.put("to", t.to().name());
+              m.put("at", t.at().toString());
+              return m;
+            })
+            .toList());
     json(ctx, out);
   }
 
@@ -178,7 +225,7 @@ public final class TwinrailServer {
         b.get("currency").getAsString(),
         new BigDecimal(b.get("balance").getAsString()));
     ctx.status(HttpStatus.CREATED);
-    json(ctx, emulator.account(b.get("id").getAsString()).orElseThrow());
+    json(ctx, accountJson(emulator.account(b.get("id").getAsString()).orElseThrow()));
   }
 
   private void getAccount(Context ctx) {
@@ -193,7 +240,7 @@ public final class TwinrailServer {
               + "/accounts.");
       return;
     }
-    json(ctx, account.get());
+    json(ctx, accountJson(account.get()));
   }
 
   private void statement(Context ctx) {
@@ -285,5 +332,14 @@ public final class TwinrailServer {
 
   private static void json(Context ctx, Object value) {
     ctx.contentType("application/json").result(GSON.toJson(value));
+  }
+
+  private static Map<String, Object> accountJson(Emulator.AccountView a) {
+    Map<String, Object> m = new LinkedHashMap<>();
+    m.put("id", a.id());
+    m.put("currency", a.currency());
+    m.put("balance", a.balance().toPlainString());
+    m.put("available", a.available().toPlainString());
+    return m;
   }
 }

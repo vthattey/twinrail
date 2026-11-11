@@ -8,6 +8,12 @@ dependencies {
     runtimeOnly(project(":ui"))
 }
 
+dependencies {
+    // Contract tests parse the OpenAPI file and validate responses against its schemas.
+    testImplementation(libs.snakeyaml.engine)
+    testImplementation(libs.json.schema.validator)
+}
+
 tasks.test {
     systemProperty(
         "rulePacksDir",
