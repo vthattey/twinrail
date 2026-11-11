@@ -15,9 +15,13 @@ import io.github.vthattey.twinrail.core.recorder.Session;
 import io.github.vthattey.twinrail.core.rules.RulePack;
 import io.github.vthattey.twinrail.core.scenario.ScenarioSet;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -38,6 +42,8 @@ public final class Emulator {
   private ScenarioSet scenarios;
   private PaymentEngine engine;
   private Statements statements;
+  private Webhooks webhooks;
+  private int eventCursor;
 
   public Emulator(Config config) {
     this.config = config;
@@ -50,6 +56,8 @@ public final class Emulator {
     ledger = new Ledger();
     recorder = new Recorder(config.seed(), config.start());
     scenarios = ScenarioSet.empty();
+    webhooks = new Webhooks();
+    eventCursor = 0;
     rebuild();
   }
 
@@ -62,7 +70,9 @@ public final class Emulator {
   public synchronized Payment submit(String xml) {
     var parsed = codec.parse(xml);
     recorder.recordMessage(clock.instant(), Direction.INBOUND, parsed.type(), xml);
-    return engine.submit(XmlMessage.of(parsed, codec));
+    Payment payment = engine.submit(XmlMessage.of(parsed, codec));
+    syncEvents();
+    return payment;
   }
 
   public synchronized Instant now() {
@@ -72,13 +82,17 @@ public final class Emulator {
   public synchronized List<Transition> advance(Duration by) {
     Instant after = clock.advance(by);
     recorder.recordClockAdvanced(after, by);
-    return engine.tick();
+    var done = engine.tick();
+    syncEvents();
+    return done;
   }
 
   public synchronized List<Transition> setClock(Instant to) {
     Instant after = clock.set(to);
     recorder.recordClockSet(after);
-    return engine.tick();
+    var done = engine.tick();
+    syncEvents();
+    return done;
   }
 
   public synchronized void openAccount(String id, String currency, BigDecimal balance) {
@@ -121,6 +135,54 @@ public final class Emulator {
 
   public synchronized Session session() {
     return recorder.session();
+  }
+
+  // Webhooks. Events come from the payment history, so each state change is announced once.
+
+  private void syncEvents() {
+    var history = engine.history();
+    for (; eventCursor < history.size(); eventCursor++) {
+      Transition t = history.get(eventCursor);
+      Map<String, Object> payload =
+          new LinkedHashMap<>(PaymentJson.of(engine.find(t.paymentId()).orElseThrow()));
+      payload.put("state", t.to().name());
+      webhooks.publish("payment." + t.to().name().toLowerCase(Locale.ROOT), t.at(), payload);
+    }
+  }
+
+  public synchronized Webhooks.Target addWebhook(String url, String secret) {
+    return webhooks.register(url, secret);
+  }
+
+  public synchronized boolean removeWebhook(String id) {
+    return webhooks.remove(id);
+  }
+
+  public synchronized List<Webhooks.Target> webhookTargets() {
+    return webhooks.targets();
+  }
+
+  public synchronized List<Map<String, Object>> deliveries() {
+    return webhooks.deliveries().stream().map(Webhooks.Delivery::view).toList();
+  }
+
+  /**
+   * Sends every delivery that is due at the current virtual time. The HTTP calls happen outside the
+   * lock; failed ones are rescheduled on the virtual clock, so a retry needs the clock to move.
+   */
+  public void deliverDue(WebhookSender sender) {
+    List<Webhooks.Delivery> due;
+    Instant now;
+    synchronized (this) {
+      now = clock.instant();
+      due = webhooks.due(now);
+    }
+    for (Webhooks.Delivery d : due) {
+      int status = sender.post(URI.create(d.target.url()), Webhooks.headers(d), d.body);
+      synchronized (this) {
+        webhooks.record(d, status, now);
+      }
+    }
   }
 
   /** An account as the control API shows it. */

@@ -8,7 +8,6 @@ import io.github.vthattey.twinrail.core.codec.CodecException;
 import io.github.vthattey.twinrail.core.definition.DefinitionException;
 import io.github.vthattey.twinrail.core.ledger.LedgerException;
 import io.github.vthattey.twinrail.core.lifecycle.Payment;
-import io.github.vthattey.twinrail.core.lifecycle.Rejection;
 import io.github.vthattey.twinrail.core.lifecycle.Transition;
 import io.github.vthattey.twinrail.core.recorder.SessionFiles;
 import io.github.vthattey.twinrail.core.scenario.ScenarioLoader;
@@ -34,9 +33,18 @@ public final class TwinrailServer {
 
   private final Emulator emulator;
   private final Javalin app;
+  private final WebhookSender sender;
 
   public TwinrailServer(Emulator emulator) {
+    this(emulator, WebhookSender.http());
+  }
+
+  /**
+   * @param sender how webhooks are posted; tests pass a fake
+   */
+  public TwinrailServer(Emulator emulator, WebhookSender sender) {
     this.emulator = emulator;
+    this.sender = sender;
     this.app = Javalin.create(config -> config.showJavalinBanner = false);
     routes();
     errors();
@@ -85,8 +93,34 @@ public final class TwinrailServer {
 
     app.get(
         API + "/payments",
-        ctx -> json(ctx, emulator.payments().stream().map(TwinrailServer::view).toList()));
+        ctx -> json(ctx, emulator.payments().stream().map(PaymentJson::of).toList()));
     app.get(API + "/payments/{id}", this::getPayment);
+
+    app.post(API + "/webhooks", this::addWebhook);
+    app.get(
+        API + "/webhooks",
+        ctx ->
+            json(
+                ctx,
+                emulator.webhookTargets().stream()
+                    .map(t -> Map.of("id", t.id(), "url", t.url()))
+                    .toList()));
+    app.get(API + "/webhooks/deliveries", ctx -> json(ctx, emulator.deliveries()));
+    app.delete(
+        API + "/webhooks/{id}",
+        ctx -> {
+          if (emulator.removeWebhook(ctx.pathParam("id"))) {
+            ctx.status(HttpStatus.NO_CONTENT);
+          } else {
+            notFound(
+                ctx,
+                "Webhook "
+                    + ctx.pathParam("id")
+                    + " not found. List them with GET "
+                    + API
+                    + "/webhooks.");
+          }
+        });
 
     app.get(
         API + "/session",
@@ -99,7 +133,8 @@ public final class TwinrailServer {
         p.state().isFinal() && p.rejection() != null
             ? HttpStatus.UNPROCESSABLE_CONTENT
             : HttpStatus.OK);
-    json(ctx, view(p));
+    emulator.deliverDue(sender);
+    json(ctx, PaymentJson.of(p));
   }
 
   private void advanceClock(Context ctx) {
@@ -121,6 +156,7 @@ public final class TwinrailServer {
   }
 
   private void clockResult(Context ctx, List<Transition> done) {
+    emulator.deliverDue(sender);
     Map<String, Object> out = new LinkedHashMap<>();
     out.put("now", emulator.now().toString());
     out.put("transitions", done);
@@ -179,6 +215,16 @@ public final class TwinrailServer {
     json(ctx, Map.of("scenarios", emulator.scenarios().scenarios().size()));
   }
 
+  private void addWebhook(Context ctx) {
+    JsonObject b = body(ctx);
+    var target =
+        emulator.addWebhook(
+            b.has("url") ? b.get("url").getAsString() : null,
+            b.has("secret") ? b.get("secret").getAsString() : null);
+    ctx.status(HttpStatus.CREATED);
+    json(ctx, Map.of("id", target.id(), "url", target.url()));
+  }
+
   private void getPayment(Context ctx) {
     var payment = emulator.payment(ctx.pathParam("id"));
     if (payment.isEmpty()) {
@@ -191,7 +237,7 @@ public final class TwinrailServer {
               + "/payments.");
       return;
     }
-    json(ctx, view(payment.get()));
+    json(ctx, PaymentJson.of(payment.get()));
   }
 
   private void errors() {
@@ -239,28 +285,5 @@ public final class TwinrailServer {
 
   private static void json(Context ctx, Object value) {
     ctx.contentType("application/json").result(GSON.toJson(value));
-  }
-
-  private static Map<String, Object> view(Payment p) {
-    Map<String, Object> m = new LinkedHashMap<>();
-    m.put("id", p.id());
-    m.put("state", p.state().name());
-    m.put("endToEndId", p.endToEndId());
-    m.put("uetr", p.uetr());
-    m.put("debtorAccount", p.debtorAccount());
-    m.put("creditorAccount", p.creditorAccount());
-    m.put("amount", p.amount() == null ? null : p.amount().toPlainString());
-    m.put("currency", p.currency());
-    m.put("receivedAt", p.receivedAt().toString());
-    m.put("settleAt", p.settleAt() == null ? null : p.settleAt().toString());
-    m.put("timeoutAt", p.timeoutAt().toString());
-    m.put("closedAt", p.closedAt() == null ? null : p.closedAt().toString());
-    Rejection r = p.rejection();
-    if (r != null) {
-      m.put(
-          "rejection",
-          Map.of("rule", r.ruleId(), "reason", r.reason(), "text", r.text(), "source", r.source()));
-    }
-    return m;
   }
 }

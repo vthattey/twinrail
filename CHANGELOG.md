@@ -22,3 +22,5 @@ All notable changes to this project are documented here. The format is based on
   `camt.054.001.08` notifications generated from it. Guide: `docs/lifecycle.md`.
 - `server`: Javalin server with `POST /messages` and the `/_twinrail/` control API (clock, accounts, statements,
   scenarios, payments, session export, reset). Guide: `docs/control-api.md`.
+- `server`: signed webhooks (HMAC-SHA256) for payment state changes, with retries scheduled on the virtual clock
+  and local-only targets.
