@@ -20,3 +20,5 @@ document carries a notice restricting use "for any other purpose" without Paymen
 - XPath-like paths need a small evaluator over the Prowide model or the raw XML (decide in the codec task).
 - Reuse risk for RTR is open; the first RTR pack ships only after the enquiry to ISO20022@payments.ca is answered
   or the minimal form above is judged safe.
+
+See also [ADR 0010](0010-definition-validation.md) for how packs are validated at run time and in CI.
