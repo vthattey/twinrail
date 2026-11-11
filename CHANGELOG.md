@@ -32,3 +32,5 @@ All notable changes to this project are documented here. The format is based on
 - `core`: ACH (NACHA) file codec: table-driven record layouts, parser, deterministic writer, builder that derives
   control records, and a control-total checker with stable problem ids. Guide: `docs/nacha.md`. Research notes on
   the sources read: `docs/research.md` section 7.
+- Scenario actions `return` (ACH return codes) and `noc` (notification of change), `nacha.entry` as a scenario
+  message type, a return and change code table with a source on every code, and ADR 0011.

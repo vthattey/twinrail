@@ -1,10 +1,12 @@
 package io.github.vthattey.twinrail.core.scenario;
 
 import java.time.Duration;
+import java.util.Map;
 
 /**
- * What the emulator does when a scenario matches. Return and recall actions arrive with the rails
- * that support them (see ADR 0009).
+ * What the emulator does when a scenario matches. Which actions apply depends on the rail: reject,
+ * delay and drop act on ISO 20022 payments; return and noc act on ACH entries (see ADR 0009 and ADR
+ * 0011). A recall action arrives only if a public spec covers it.
  */
 public sealed interface Action {
   /** Reject the message with a reason code. */
@@ -15,4 +17,21 @@ public sealed interface Action {
 
   /** Never answer, so the sender's time-out fires. */
   record Drop() implements Action {}
+
+  /**
+   * Return an ACH entry with a return code ({@code R01}...), {@code after} the entry settles. A
+   * zero {@code after} returns it at once.
+   */
+  record Return(String code, Duration after, String text) implements Action {}
+
+  /**
+   * Notify the originator of a change ({@code C01}...) for a settled ACH entry. {@code corrected}
+   * holds the corrected values the change code needs: account, routing, transactionCode,
+   * individualId.
+   */
+  record Noc(String code, Map<String, String> corrected) implements Action {
+    public Noc {
+      corrected = Map.copyOf(corrected);
+    }
+  }
 }
