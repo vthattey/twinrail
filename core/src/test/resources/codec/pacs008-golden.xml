@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<pacs:Document xmlns:pacs="urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08">
+  <pacs:FIToFICstmrCdtTrf>
+    <pacs:GrpHdr>
+      <pacs:MsgId>TWIN-000001</pacs:MsgId>
+      <pacs:CreDtTm>2026-11-09T10:00:00+00:00</pacs:CreDtTm>
+      <pacs:NbOfTxs>1</pacs:NbOfTxs>
+      <pacs:SttlmInf>
+        <pacs:SttlmMtd>CLRG</pacs:SttlmMtd>
+      </pacs:SttlmInf>
+    </pacs:GrpHdr>
+    <pacs:CdtTrfTxInf>
+      <pacs:PmtId>
+        <pacs:InstrId>I-1</pacs:InstrId>
+        <pacs:EndToEndId>E2E-1</pacs:EndToEndId>
+        <pacs:UETR>bdd73226-2feb-4e95-a8ef-e333b266f103</pacs:UETR>
+      </pacs:PmtId>
+      <pacs:IntrBkSttlmAmt Ccy="CAD">125.50</pacs:IntrBkSttlmAmt>
+      <pacs:ChrgBr>SLEV</pacs:ChrgBr>
+      <pacs:Dbtr>
+        <pacs:Nm>Test Debtor</pacs:Nm>
+      </pacs:Dbtr>
+      <pacs:DbtrAgt>
+        <pacs:FinInstnId>
+          <pacs:ClrSysMmbId>
+            <pacs:MmbId>000000001</pacs:MmbId>
+          </pacs:ClrSysMmbId>
+        </pacs:FinInstnId>
+      </pacs:DbtrAgt>
+      <pacs:CdtrAgt>
+        <pacs:FinInstnId>
+          <pacs:ClrSysMmbId>
+            <pacs:MmbId>000000002</pacs:MmbId>
+          </pacs:ClrSysMmbId>
+        </pacs:FinInstnId>
+      </pacs:CdtrAgt>
+      <pacs:Cdtr>
+        <pacs:Nm>Test Creditor</pacs:Nm>
+      </pacs:Cdtr>
+    </pacs:CdtTrfTxInf>
+  </pacs:FIToFICstmrCdtTrf>
+</pacs:Document>

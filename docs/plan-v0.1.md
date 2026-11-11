@@ -19,14 +19,15 @@ Scope is the MVP in `docs/brief.md` as amended by ADR 0009. Decisions: `docs/dec
 ### M0. Foundation
 - [x] Gradle (Kotlin DSL) multi-module skeleton per ADR 0008; Java 21 toolchain.
 - [x] Apache-2.0 LICENSE, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT, CHANGELOG, issue templates.
-- [~] CI on Linux, Windows, macOS: build, test, format check. (Written, not yet run on GitHub: no remote yet.)
+- [x] CI on Linux, Windows, macOS: build, test, format check. (Green on PR #1.)
 - [x] README with the "not certification" statement, trademark note and credits (mock-bank, moov).
 
 ### M1. Core model: codec, clock, recorder
-- [ ] Message codec wrapper (parse, validate against schema, generate) with golden-file tests.
-- [ ] Virtual clock (advance, set, never sleeps) and seeded id generator.
-- [ ] Recorder: every message stored; session export/import with a format version (ADR 0007).
-- [ ] Determinism test: same seed, clock and inputs produce byte-identical output.
+- [~] Message codec wrapper: parse, write with pinned settings, golden-file tests, XXE test. Schema validation is
+      not done: the Prowide jar ships no XSDs (see `docs/research.md` section 5); decide in M2/M5.
+- [x] Virtual clock (advance, set, never sleeps) and seeded id generator.
+- [x] Recorder: every message stored; session export/import with a format version (ADR 0007).
+- [x] Determinism test: same seed, clock and inputs produce byte-identical output.
 
 ### M2. Rule engine and scenarios
 - [ ] Rule-pack JSON Schema and loader; element-path evaluator (ADR 0003).
