@@ -10,6 +10,8 @@ Scope is the MVP in `docs/brief.md` as amended by ADR 0009. Decisions: `docs/dec
       Method, questions and decision rule are in `docs/validation.md`; no conversations held yet.
 - [ ] **G2. Payments Canada enquiry** (ISO20022@payments.ca): may a public open-source rule pack reference the RTR
       specs? Blocks M5 (RTR pack) only.
+      Enquiry in `docs/g2-enquiry-draft.md` **sent 2026-11-11**; awaiting reply (follow-up planned around 2026-11-25).
+      **Decision 2026-11-10: the v0.1 release waits for the answer**; no `v0.1.0` tag until then.
 - [x] **G3. Spike: Prowide open edition.** Done: classes present, round-trip stable, ~1.4 s cold start (~0.95 s with
       AppCDS); see `docs/research.md` sections 5–6. Image size still to measure in M4 (no Docker yet). Confirm `pacs.008.001.08`, `pacs.002.001.10`, `pacs.028.001.03`,
       `head.001.001.02`, `camt.053`/`.054` exist and (un)marshal; measure image size and startup. Output: update
