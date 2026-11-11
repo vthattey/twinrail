@@ -38,3 +38,6 @@ All notable changes to this project are documented here. The format is based on
   `return` / `noc` scenarios apply on the virtual clock, reporting the return time frame from the code table and
   the type 99 / 98 addenda record. `server`: `POST /ach/files`, `/_twinrail/ach/entries`, `achTransitions` on the
   clock endpoints, OpenAPI and contract tests for them. `Ledger.book` for movements that need no reservation.
+- Inspector UI at `/ui`: a live timeline of messages, payment and ACH state changes and clock moves, with the rule
+  behind each rejection or return, accounts, webhook deliveries and clock buttons. Server-rendered with vendored
+  htmx 2.0.4 (no CDN), escaped by construction, strict Content-Security-Policy. Guide: `docs/ui.md`.

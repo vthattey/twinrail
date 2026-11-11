@@ -232,6 +232,17 @@ public final class Emulator {
     }
   }
 
+  /** Everything the inspector UI shows, as one consistent snapshot. */
+  public synchronized io.github.vthattey.twinrail.ui.Snapshot uiSnapshot() {
+    return UiSnapshots.build(
+        clock.instant(),
+        recorder.session().events(),
+        engine,
+        ach,
+        accounts(),
+        webhooks.deliveries());
+  }
+
   /** An account as the control API shows it. */
   public record AccountView(String id, String currency, BigDecimal balance, BigDecimal available) {}
 }

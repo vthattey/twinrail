@@ -47,7 +47,7 @@ public final class Main {
     try {
       var client = java.net.http.HttpClient.newHttpClient();
       var base = "http://localhost:" + server.port();
-      for (var path : java.util.List.of("/_twinrail/health", "/_twinrail/clock")) {
+      for (var path : java.util.List.of("/_twinrail/health", "/_twinrail/clock", "/ui/live")) {
         client.send(
             java.net.http.HttpRequest.newBuilder(java.net.URI.create(base + path)).build(),
             java.net.http.HttpResponse.BodyHandlers.discarding());
