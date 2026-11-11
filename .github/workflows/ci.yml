@@ -25,3 +25,13 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Build, test and check formatting
         run: ./gradlew build spotlessCheck --no-daemon
+
+  image:
+    name: Container image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image
+        run: docker build -t twinrail:ci .
+      - name: Start it, smoke test it, record size and start-up time
+        run: bash scripts/image-check.sh twinrail:ci

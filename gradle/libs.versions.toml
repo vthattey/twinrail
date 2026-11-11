@@ -6,6 +6,8 @@ gson = "2.14.0"
 jaxb = "4.0.6"
 snakeyaml-engine = "3.2"
 json-schema-validator = "3.0.9"
+javalin = "6.7.0"
+slf4j = "2.0.17"
 
 [libraries]
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
@@ -16,6 +18,8 @@ prowide-iso20022 = { module = "com.prowidesoftware:pw-iso20022", version.ref = "
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "jaxb" }
 snakeyaml-engine = { module = "org.snakeyaml:snakeyaml-engine", version.ref = "snakeyaml-engine" }
+javalin = { module = "io.javalin:javalin", version.ref = "javalin" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 json-schema-validator = { module = "com.networknt:json-schema-validator", version.ref = "json-schema-validator" }
 
 [plugins]

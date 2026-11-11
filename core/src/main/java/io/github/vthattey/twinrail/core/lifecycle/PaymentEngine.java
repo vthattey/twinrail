@@ -56,7 +56,7 @@ public final class PaymentEngine {
   private final SeededIds ids;
   private final RuleEngine rules = new RuleEngine();
   private final RulePack pack;
-  private final ScenarioSet scenarios;
+  private ScenarioSet scenarios;
   private final Ledger ledger;
   private final Map<String, Payment> payments = new LinkedHashMap<>();
   private final List<Transition> history = new ArrayList<>();
@@ -230,6 +230,14 @@ public final class PaymentEngine {
       done.add(t);
     }
     return done;
+  }
+
+  /**
+   * Replaces the scenarios used for payments received from now on. Payments already accepted keep
+   * the behaviour they were accepted with.
+   */
+  public void setScenarios(ScenarioSet set) {
+    this.scenarios = set;
   }
 
   public Optional<Payment> find(String id) {

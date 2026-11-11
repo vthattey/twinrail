@@ -1,0 +1,343 @@
+openapi: 3.1.0
+info:
+  title: Twinrail control API
+  version: 0.1.0
+  description: |
+    Message endpoint and control API of the Twinrail emulator. Twinrail complements scheme and network testing;
+    it does not replace it. Everything runs on a virtual clock: same seed, start time and calls give the same
+    responses. Changes to this file are compatibility changes and need a CHANGELOG entry.
+servers:
+  - url: http://localhost:8080
+paths:
+  /messages:
+    post:
+      summary: Send a pacs.008 credit transfer
+      description: Runs the payment through the rules, scenarios and ledger. 422 when it is rejected.
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema: { type: string }
+      responses:
+        "200": { description: Accepted or settled., content: { application/json: { schema: { $ref: "#/components/schemas/Payment" } } } }
+        "422": { description: Rejected; the payment carries the rule and reason code., content: { application/json: { schema: { $ref: "#/components/schemas/Payment" } } } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /_twinrail/openapi.yaml:
+    get:
+      summary: This file
+      responses:
+        "200": { description: The OpenAPI document., content: { application/yaml: { schema: { type: string } } } }
+  /_twinrail/health:
+    get:
+      summary: Liveness
+      responses:
+        "200":
+          description: The server is up.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                additionalProperties: false
+                properties:
+                  status: { const: ok }
+  /_twinrail/reset:
+    post:
+      summary: Back to the start state (clock, ids, ledger, payments, scenarios, webhooks, recording)
+      responses:
+        "204": { description: Reset. }
+  /_twinrail/clock:
+    get:
+      summary: Current virtual time
+      responses:
+        "200": { description: The time., content: { application/json: { schema: { $ref: "#/components/schemas/Clock" } } } }
+  /_twinrail/clock/advance:
+    post:
+      summary: Move time forward, apply what became due, send due webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [by]
+              additionalProperties: false
+              properties:
+                by: { type: string, description: "ISO 8601 duration, example: PT30S" }
+      responses:
+        "200": { description: The new time and the state changes it caused., content: { application/json: { schema: { $ref: "#/components/schemas/ClockResult" } } } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /_twinrail/clock/set:
+    post:
+      summary: Move time to an instant. Time never moves back.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [to]
+              additionalProperties: false
+              properties:
+                to: { type: string, format: date-time }
+      responses:
+        "200": { description: The new time and the state changes it caused., content: { application/json: { schema: { $ref: "#/components/schemas/ClockResult" } } } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /_twinrail/accounts:
+    post:
+      summary: Open an account that cannot be overdrawn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, currency, balance]
+              additionalProperties: false
+              properties:
+                id: { type: string }
+                currency: { type: string, pattern: "^[A-Z]{3}$" }
+                balance: { type: string, description: Decimal amount as a string, example: "100.00" }
+      responses:
+        "201": { description: Opened., content: { application/json: { schema: { $ref: "#/components/schemas/Account" } } } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+    get:
+      summary: List accounts
+      responses:
+        "200": { description: Accounts in the order first seen., content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Account" } } } } }
+  /_twinrail/accounts/{id}:
+    get:
+      summary: One account
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: The account., content: { application/json: { schema: { $ref: "#/components/schemas/Account" } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /_twinrail/accounts/{id}/statement:
+    get:
+      summary: camt.053.001.08 statement of every booking since the account was opened
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: The statement., content: { application/xml: { schema: { type: string } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /_twinrail/scenarios:
+    put:
+      summary: Replace the scenarios used for payments received from now on
+      requestBody:
+        required: true
+        content:
+          application/yaml:
+            schema: { type: string, description: "A scenario file, see docs/scenarios.md" }
+      responses:
+        "200":
+          description: Loaded.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [scenarios]
+                additionalProperties: false
+                properties:
+                  scenarios: { type: integer, minimum: 0 }
+        "400": { $ref: "#/components/responses/BadRequest" }
+    get:
+      summary: Loaded scenarios
+      responses:
+        "200":
+          description: Scenario ids in order.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [id]
+                  additionalProperties: false
+                  properties:
+                    id: { type: string }
+  /_twinrail/payments:
+    get:
+      summary: All payments in the order received
+      responses:
+        "200": { description: Payments., content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Payment" } } } } }
+  /_twinrail/payments/{id}:
+    get:
+      summary: One payment
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "200": { description: The payment., content: { application/json: { schema: { $ref: "#/components/schemas/Payment" } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /_twinrail/webhooks:
+    post:
+      summary: Register a webhook target (local targets only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url, secret]
+              additionalProperties: false
+              properties:
+                url: { type: string, format: uri }
+                secret: { type: string, minLength: 1, description: Key for the HMAC-SHA256 signature }
+      responses:
+        "201": { description: Registered., content: { application/json: { schema: { $ref: "#/components/schemas/WebhookTarget" } } } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+    get:
+      summary: List webhook targets (never the secret)
+      responses:
+        "200": { description: Targets., content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/WebhookTarget" } } } } }
+  /_twinrail/webhooks/deliveries:
+    get:
+      summary: Every delivery with its state, attempts and next attempt time
+      responses:
+        "200": { description: Deliveries., content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Delivery" } } } } }
+  /_twinrail/webhooks/{id}:
+    delete:
+      summary: Remove a webhook target
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "204": { description: Removed. }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /_twinrail/session:
+    get:
+      summary: The recorded session as a session file (ADR 0007)
+      responses:
+        "200":
+          description: Seed, start time and every message and clock event.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [formatVersion, events]
+                properties:
+                  formatVersion: { type: integer }
+                  events: { type: array }
+webhooks:
+  payment:
+    post:
+      summary: A payment changed state
+      description: |
+        Sent for payment.accepted, payment.settled, payment.rejected and payment.timed_out. Header
+        Twinrail-Signature is sha256= followed by the hex HMAC-SHA256 of the exact body using the target's secret.
+        Failed deliveries are retried on virtual time: 1 s, 2 s, 4 s, 8 s, five attempts in all.
+      parameters:
+        - { name: Twinrail-Signature, in: header, required: true, schema: { type: string, pattern: "^sha256=[0-9a-f]{64}$" } }
+        - { name: Twinrail-Event-Id, in: header, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WebhookEvent" }
+      responses:
+        "2XX": { description: Delivered. Any other answer is retried. }
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string }
+  responses:
+    BadRequest:
+      description: The request was wrong. The error says what to change.
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    NotFound:
+      description: Nothing with that id. The error says how to list what exists.
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      additionalProperties: false
+      properties:
+        error: { type: string, description: What went wrong and what to do next. }
+    Clock:
+      type: object
+      required: [now]
+      additionalProperties: false
+      properties:
+        now: { type: string, format: date-time }
+    ClockResult:
+      type: object
+      required: [now, transitions]
+      additionalProperties: false
+      properties:
+        now: { type: string, format: date-time }
+        transitions: { type: array, items: { $ref: "#/components/schemas/Transition" } }
+    Transition:
+      type: object
+      required: [paymentId, to, at]
+      additionalProperties: false
+      properties:
+        paymentId: { type: string }
+        from: { $ref: "#/components/schemas/State" }
+        to: { $ref: "#/components/schemas/State" }
+        at: { type: string, format: date-time }
+    State:
+      type: string
+      enum: [ACCEPTED, SETTLED, REJECTED, TIMED_OUT]
+    Account:
+      type: object
+      required: [id, currency, balance, available]
+      additionalProperties: false
+      properties:
+        id: { type: string }
+        currency: { type: string }
+        balance: { type: string }
+        available: { type: string, description: Balance minus funds reserved for accepted payments. }
+    Rejection:
+      type: object
+      required: [rule, reason, text, source]
+      additionalProperties: false
+      properties:
+        rule: { type: string, description: "A rule-pack rule id, scenario:<id>, or a twinrail.* built-in check." }
+        reason: { type: string, description: ISO 20022 external reason code. }
+        text: { type: string }
+        source: { type: string }
+    Payment:
+      type: object
+      required: [id, state, receivedAt, timeoutAt]
+      additionalProperties: false
+      properties:
+        id: { type: string, example: PMT-000001 }
+        state: { $ref: "#/components/schemas/State" }
+        endToEndId: { type: string }
+        uetr: { type: string }
+        debtorAccount: { type: string }
+        creditorAccount: { type: string }
+        amount: { type: string }
+        currency: { type: string }
+        receivedAt: { type: string, format: date-time }
+        settleAt: { type: string, format: date-time }
+        timeoutAt: { type: string, format: date-time }
+        closedAt: { type: string, format: date-time }
+        rejection: { $ref: "#/components/schemas/Rejection" }
+    WebhookTarget:
+      type: object
+      required: [id, url]
+      additionalProperties: false
+      properties:
+        id: { type: string, example: WH-001 }
+        url: { type: string }
+    Delivery:
+      type: object
+      required: [id, eventId, target, state, attempts, lastStatus]
+      additionalProperties: false
+      properties:
+        id: { type: string }
+        eventId: { type: string }
+        target: { type: string }
+        state: { type: string, enum: [PENDING, DELIVERED, FAILED] }
+        attempts: { type: integer, minimum: 0 }
+        lastStatus: { type: integer, description: "Last HTTP status, -1 if unreachable, 0 before the first attempt." }
+        nextAttemptAt: { type: string, format: date-time }
+    WebhookEvent:
+      type: object
+      required: [id, type, time, payload]
+      additionalProperties: false
+      properties:
+        id: { type: string, example: EVT-000001 }
+        type: { type: string, enum: [payment.accepted, payment.settled, payment.rejected, payment.timed_out] }
+        time: { type: string, format: date-time, description: Virtual time of the state change. }
+        payload: { $ref: "#/components/schemas/Payment" }

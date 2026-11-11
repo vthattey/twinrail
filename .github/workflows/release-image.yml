@@ -1,0 +1,31 @@
+name: Publish image
+
+# Runs when a version tag such as v0.1.0 is pushed. The image is checked (starts, answers, settles a payment)
+# before anything is pushed.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image
+        run: docker build -t twinrail:release .
+      - name: Check it
+        run: bash scripts/image-check.sh twinrail:release
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Push
+        run: |
+          repo="ghcr.io/$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')/twinrail"
+          version="${GITHUB_REF_NAME#v}"
+          docker tag twinrail:release "$repo:$version"
+          docker tag twinrail:release "$repo:latest"
+          docker push "$repo:$version"
+          docker push "$repo:latest"
