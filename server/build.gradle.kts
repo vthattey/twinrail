@@ -14,7 +14,7 @@ dependencies {
     implementation(libs.gson)
     runtimeOnly(libs.slf4j.simple)
     runtimeOnly(project(":rule-packs"))
-    runtimeOnly(project(":ui"))
+    implementation(project(":ui"))
 }
 
 dependencies {

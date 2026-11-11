@@ -11,6 +11,8 @@ import io.github.vthattey.twinrail.core.lifecycle.Payment;
 import io.github.vthattey.twinrail.core.lifecycle.Transition;
 import io.github.vthattey.twinrail.core.recorder.SessionFiles;
 import io.github.vthattey.twinrail.core.scenario.ScenarioLoader;
+import io.github.vthattey.twinrail.ui.Assets;
+import io.github.vthattey.twinrail.ui.Pages;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
@@ -48,6 +50,7 @@ public final class TwinrailServer {
     this.sender = sender;
     this.app = Javalin.create(config -> config.showJavalinBanner = false);
     registerRoutes();
+    uiRoutes();
     errors();
   }
 
@@ -177,6 +180,64 @@ public final class TwinrailServer {
             : HttpStatus.OK);
     emulator.deliverDue(sender);
     json(ctx, PaymentJson.of(p));
+  }
+
+  /**
+   * The inspector UI under {@code /ui}. These routes are a human interface, not part of the API
+   * contract, so they are not in the OpenAPI file and not registered through {@code route}.
+   */
+  private void uiRoutes() {
+    app.get("/", ctx -> ctx.redirect("/ui"));
+    app.get("/ui", ctx -> ctx.contentType("text/html; charset=utf-8").result(Pages.index()));
+    app.get(
+        "/ui/live",
+        ctx ->
+            ctx.contentType("text/html; charset=utf-8").result(Pages.live(emulator.uiSnapshot())));
+    app.get(
+        "/ui/static/{name}",
+        ctx -> {
+          var asset = Assets.find(ctx.pathParam("name"));
+          if (asset.isEmpty()) {
+            ctx.status(HttpStatus.NOT_FOUND).contentType("text/plain").result("Not found");
+            return;
+          }
+          ctx.contentType(asset.get().contentType()).result(asset.get().bytes());
+        });
+    app.post(
+        "/ui/clock/advance",
+        ctx -> {
+          // htmx always sends this header; a form posted from another site cannot add it without a
+          // CORS preflight, so this keeps other pages from moving the clock.
+          if (!"true".equals(ctx.header("HX-Request"))) {
+            ctx.status(HttpStatus.FORBIDDEN)
+                .contentType("text/plain")
+                .result("Use the buttons on the inspector page.");
+            return;
+          }
+          String by = ctx.formParam("by");
+          boolean known = Pages.CLOCK_STEPS.stream().anyMatch(step -> step[1].equals(by));
+          if (!known) {
+            ctx.status(HttpStatus.BAD_REQUEST)
+                .contentType("text/plain")
+                .result("Unknown step. Use one of the buttons on the inspector page.");
+            return;
+          }
+          emulator.advance(Duration.parse(by));
+          emulator.deliverDue(sender);
+          ctx.contentType("text/html; charset=utf-8").result(Pages.live(emulator.uiSnapshot()));
+        });
+    io.javalin.http.Handler secureHeaders =
+        ctx -> {
+          ctx.header(
+              "Content-Security-Policy",
+              "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; "
+                  + "base-uri 'none'; form-action 'self'; frame-ancestors 'none'");
+          ctx.header("X-Content-Type-Options", "nosniff");
+          ctx.header("Referrer-Policy", "no-referrer");
+          ctx.header("Cache-Control", "no-store");
+        };
+    app.after("/ui", secureHeaders);
+    app.after("/ui/*", secureHeaders);
   }
 
   private void postAchFile(Context ctx) {

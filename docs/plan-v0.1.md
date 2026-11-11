@@ -59,7 +59,8 @@ Scope is the MVP in `docs/brief.md` as amended by ADR 0009. Decisions: `docs/dec
       sources; limits in `docs/nacha.md`: no return/change entry file, no webhook events yet).
 
 ### M7. Inspector UI
-- [ ] Server-rendered htmx timeline, rule behind each rejection; vendored htmx; escaping tests (ADR 0006).
+- [x] Server-rendered htmx timeline, rule behind each rejection; vendored htmx; escaping tests (ADR 0006).
+      (`docs/ui.md`; checked in a real browser: htmx runs under the strict CSP, rows stay open across refreshes.)
 
 ### M8. Testcontainers module (Java, JUnit 5)
 - [ ] Container class, typed client over the control API, example project.
